@@ -1,0 +1,3859 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ឧបករណ៍ពិសោធន៍រូបវិទ្យាពិតៗ (Physics Lab Realistic Simulator)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Kantumruy Pro', system-ui, -apple-system, sans-serif;
+    }
+    .tab-btn.active {
+      border-bottom: 3px solid #2563eb;
+      color: #2563eb;
+      font-weight: 600;
+    }
+    /* Fullscreen styling for canvas container */
+    .lab-viewport:fullscreen {
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      background: #040810 !important;
+      padding: 0.5rem !important;
+      border-radius: 0 !important;
+      border: none !important;
+      overflow: hidden !important;
+    }
+    .lab-viewport:-webkit-full-screen {
+      width: 100vw !important;
+      height: 100vh !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      background: #040810 !important;
+    }
+    .lab-viewport:fullscreen .zoom-wrapper {
+      width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+    }
+    .lab-viewport:fullscreen canvas {
+      max-height: 92vh !important;
+      max-width: 96vw !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
+      filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.8));
+    }
+    .zoom-wrapper {
+      transition: transform 0.2s ease-out;
+      transform-origin: center center;
+    }
+    canvas {
+      image-rendering: auto;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700 sticky top-0 z-30 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-2xl shadow-lg shadow-blue-500/30">
+          🔬
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-bold text-white leading-tight">ឧបករណ៍ពិសោធន៍រូបវិទ្យាពិតៗ (Physics Lab Realistic Simulator)</h1>
+          <p class="text-xs text-slate-400">មេរៀនទី ១៖ ការចម្លងកម្តៅ (២ ពិសោធន៍) | មេរៀនទី ២៖ ចរន្តវិលវល់ (ខ្យល់កម្តៅ & ម៉ាញេទិច)</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          ក្រាហ្វិកកម្រិត 4K Ultra-HD & Fullscreen
+        </span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 flex border-t border-slate-700/60 space-x-6 text-sm overflow-x-auto">
+      <button onclick="switchTab('thermo')" id="tab-btn-thermo" class="tab-btn active py-3 px-2 flex items-center gap-2 whitespace-nowrap">
+        🌡️ ១. ការចម្លងកម្តៅ (ទែម៉ូម៉ែត្រ ៣ ដើម)
+      </button>
+      <button onclick="switchTab('conduction')" id="tab-btn-conduction" class="tab-btn py-3 px-2 flex items-center gap-2 text-slate-400 hover:text-slate-200 whitespace-nowrap">
+        🔥 ២. ការចម្លងកម្តៅ (ប្រៀបធៀបរបារ ៥ ប្រភេទ)
+      </button>
+      <button onclick="switchTab('convection')" id="tab-btn-convection" class="tab-btn py-3 px-2 flex items-center gap-2 text-slate-400 hover:text-slate-200 whitespace-nowrap">
+        🌀 ៣. ចរន្តវិលវល់ខ្យល់កម្តៅ (កំប៉ុង & កង្ហារក្រដាស) <span class="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 text-[10px] font-bold rounded">✨ ថ្មី</span>
+      </button>
+      <button onclick="switchTab('eddy')" id="tab-btn-eddy" class="tab-btn py-3 px-2 flex items-center gap-2 text-slate-400 hover:text-slate-200 whitespace-nowrap">
+        🧲 ៤. ចរន្តវិលវល់ម៉ាញេទិច (បំពង់លោហៈ & មេដែក)
+      </button>
+      <button onclick="switchTab('catalog')" id="tab-btn-catalog" class="tab-btn py-3 px-2 flex items-center gap-2 text-slate-400 hover:text-slate-200 whitespace-nowrap">
+        📦 ៥. បញ្ជីសម្ភារឧបករណ៍ពិតៗ (Catalog)
+      </button>
+      <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="tab-btn py-3 px-2 flex items-center gap-2 text-slate-400 hover:text-slate-200 whitespace-nowrap">
+        📝 ៦. សន្លឹកកិច្ចការ & Quiz
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+
+    <!-- ==================== TAB 1: THERMOMETER EXPERIMENT ==================== -->
+    <section id="tab-thermo" class="space-y-6">
+      
+      <!-- Control Bar -->
+      <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="inline-block px-2.5 py-0.5 bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold rounded-md mb-1">
+            ការពិសោធន៍ស្តង់ដាររូបវិទ្យា (Heat Conduction with 3 Thermometers)
+          </div>
+          <h2 class="text-lg md:text-xl font-bold text-white">ការសង្កេតក្រាដ្យង់សីតុណ្ហភាពតាមបណ្តោយរបារលោហៈ</h2>
+          <p class="text-xs md:text-sm text-slate-400 mt-1">
+            ចង្កៀងប៊ុនសិនដុតកម្តៅនៅចុងខាងឆ្វេង $\rightarrow$ កម្តៅរត់តាមបណ្តោយរបារឆ្ពោះទៅស្តាំ $\rightarrow$ <strong class="text-rose-400">$T_1$ (ជិតភ្លើង) > $T_2$ (កណ្តាល) > $T_3$ (ឆ្ងាយ)</strong>
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="thermo-start-btn" onclick="toggleThermoSim()" class="px-5 py-2.5 bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-rose-500/30 transition flex items-center gap-2">
+            <span id="thermo-main-icon">🔥</span>
+            <span id="thermo-main-text">អុជចង្កៀងប៊ុនសិន</span>
+          </button>
+          <button onclick="resetThermoSim()" class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-xl transition flex items-center gap-2">
+            🔄 ពន្លត់ & ធ្វើឱ្យត្រជាក់
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Lab Simulation Window -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Canvas (3 Columns) -->
+        <div class="lg:col-span-3 bg-slate-800/90 p-4 md:p-5 rounded-2xl border border-slate-700 shadow-xl flex flex-col">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500 animate-pulse"></span>
+              <span class="text-sm font-semibold text-slate-200">ទិដ្ឋភាពពិសោធន៍ប៊ុនសិន & ទែម៉ូម៉ែត្រ ៣ ដើម</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span id="thermo-timer" class="text-xs md:text-sm font-mono bg-black/60 text-amber-400 border border-slate-700 px-3 py-1 rounded-lg">
+                ⏱️ រយៈពេល៖ 0.0s
+              </span>
+            </div>
+          </div>
+
+          <!-- The Viewport with Fullscreen & Zoom Bar -->
+          <div id="thermo-viewport" class="lab-viewport relative bg-gradient-to-b from-[#111827] via-[#0b1322] to-[#060b14] rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
+            
+            <!-- Floating Quick-Ignite Action Button (Near Bunsen Burner at Bottom Left) -->
+            <div class="absolute bottom-4 left-4 z-30">
+              <button id="thermo-burner-float-btn" onclick="toggleThermoSim()" class="px-4 py-2.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs md:text-sm rounded-xl shadow-2xl shadow-orange-500/50 border border-amber-300/60 flex items-center gap-2 backdrop-blur-md transition-all group">
+                <span id="thermo-burner-float-icon" class="text-base group-hover:scale-125 transition-transform">🔥</span>
+                <span id="thermo-burner-float-text">អុជចង្កៀងប៊ុនសិន</span>
+              </button>
+            </div>
+
+            <!-- Floating Zoom & Fullscreen Toolbar -->
+            <div class="absolute top-3 right-3 z-30 flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-1.5 rounded-xl shadow-xl">
+              <!-- Quick Ignite Button in Viewport Toolbar -->
+              <button id="thermo-quick-ignite-btn" onclick="toggleThermoSim()" class="px-3 py-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-orange-500/30">
+                <span id="thermo-quick-ignite-icon">🔥</span>
+                <span id="thermo-quick-ignite-text">អុជចង្កៀង</span>
+              </button>
+              <div class="w-px h-5 bg-slate-700 mx-0.5"></div>
+              <!-- 4K Ultra HD Badge -->
+              <span class="px-2 py-0.5 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono text-[10px] font-bold rounded flex items-center gap-1 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>4K UHD
+              </span>
+              <div class="w-px h-5 bg-slate-700 mx-0.5"></div>
+              <!-- Zoom In -->
+              <button onclick="zoomCanvas('thermo', 0.15)" title="ពង្រីក (Zoom In)" class="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-bold transition">
+                +
+              </button>
+              <!-- Zoom Out -->
+              <button onclick="zoomCanvas('thermo', -0.15)" title="បង្រួម (Zoom Out)" class="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-bold transition">
+                −
+              </button>
+              <!-- Reset Zoom -->
+              <button onclick="resetZoom('thermo')" title="កំណត់ទំហំដើម (100%)" id="thermo-zoom-badge" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300 rounded-lg transition">
+                100%
+              </button>
+              <div class="w-px h-5 bg-slate-700 mx-0.5"></div>
+              <!-- Fullscreen Button -->
+              <button onclick="toggleFullscreen('thermo-viewport')" id="fs-btn-thermo-viewport" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-blue-600/30">
+                <span class="fs-icon">⛶</span>
+                <span class="fs-text">ពេញអេក្រង់</span>
+              </button>
+            </div>
+
+            <!-- Zoomable Canvas Wrapper -->
+            <div id="thermo-zoom-wrapper" class="zoom-wrapper w-full flex justify-center items-center">
+              <canvas id="thermoCanvas" width="3400" height="1960" class="w-full h-auto block" style="aspect-ratio: 850/490;"></canvas>
+            </div>
+          </div>
+
+          <!-- Bottom Sliders & Controls -->
+          <div class="mt-4 pt-3 border-t border-slate-700/70 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div>
+              <label class="block font-medium text-slate-300 mb-1">
+                ជ្រើសរើសប្រភេទរបារលោហៈ៖
+              </label>
+              <select id="thermo-rod-type" onchange="changeThermoRod(this.value)" class="w-full p-2 bg-slate-700 border border-slate-600 rounded-xl text-white font-medium focus:ring-2 focus:ring-blue-500">
+                <option value="copper">ទង់ដែង (Copper - ចម្លងលឿនបំផុត)</option>
+                <option value="gold">មាសសុទ្ធ (Gold - ចម្លងលឿនលំដាប់ទី ២)</option>
+                <option value="aluminum">អាលុយមីញ៉ូម (Aluminum)</option>
+                <option value="steel">ដែកថែប (Steel - ចម្លងយឺត)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-300 mb-1">
+                សីតុណ្ហភាពអណ្តាតភ្លើងប៊ុនសិន៖ <span id="thermo-flame-val" class="text-rose-400 font-bold">250°C</span>
+              </label>
+              <input type="range" id="thermo-flame-slider" min="100" max="400" value="250" class="w-full h-2 bg-slate-700 rounded-lg accent-rose-500 cursor-pointer" oninput="updateThermoFlame(this.value)">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-300 mb-1">
+                ល្បឿនពិសោធន៍ (Speed)៖ <span id="thermo-speed-val" class="text-emerald-400 font-bold">1.5x</span>
+              </label>
+              <input type="range" id="thermo-speed-slider" min="0.5" max="3.0" step="0.5" value="1.5" class="w-full h-2 bg-slate-700 rounded-lg accent-emerald-500 cursor-pointer" oninput="updateThermoSpeed(this.value)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Observation Panel (1 Column) -->
+        <div class="bg-slate-800/90 p-5 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-base mb-2 flex items-center gap-2">
+              🌡️ សីតុណ្ហភាពទែម៉ូម៉ែត្រផ្ទាល់
+            </h3>
+            <p class="text-xs text-slate-400 mb-3">សង្កេតកម្រិតបារ៉ត/អាល់កុលក្រហមដែលកើនឡើងតាមពេលវេលា៖</p>
+
+            <div class="space-y-3">
+              <div class="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-bold text-rose-300">ទែម៉ូម៉ែត្រទី ១ (ជិតភ្លើង - 5 cm)</span>
+                  <span id="thermo-val-1" class="text-rose-400 font-mono font-bold text-sm">25.0°C</span>
+                </div>
+                <div class="w-full bg-slate-900 h-2 rounded-full mt-2 overflow-hidden border border-slate-700">
+                  <div id="thermo-prog-1" class="bg-gradient-to-r from-orange-500 to-rose-600 h-full w-[25%] transition-all duration-100"></div>
+                </div>
+                <div class="text-[10px] text-rose-300/80 mt-1">កម្តៅផ្ទាល់ពីអណ្តាតភ្លើងប៊ុនសិន</div>
+              </div>
+
+              <div class="p-3 rounded-xl bg-amber-950/40 border border-amber-500/40">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-bold text-amber-300">ទែម៉ូម៉ែត្រទី ២ (កណ្តាល - 25 cm)</span>
+                  <span id="thermo-val-2" class="text-amber-400 font-mono font-bold text-sm">25.0°C</span>
+                </div>
+                <div class="w-full bg-slate-900 h-2 rounded-full mt-2 overflow-hidden border border-slate-700">
+                  <div id="thermo-prog-2" class="bg-gradient-to-r from-yellow-500 to-amber-600 h-full w-[25%] transition-all duration-100"></div>
+                </div>
+                <div class="text-[10px] text-amber-300/80 mt-1">កម្តៅធ្វើដំណើរមកដល់ពាក់កណ្តាល</div>
+              </div>
+
+              <div class="p-3 rounded-xl bg-sky-950/40 border border-sky-500/40">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-bold text-sky-300">ទែម៉ូម៉ែត្រទី ៣ (ឆ្ងាយ - 45 cm)</span>
+                  <span id="thermo-val-3" class="text-sky-400 font-mono font-bold text-sm">25.0°C</span>
+                </div>
+                <div class="w-full bg-slate-900 h-2 rounded-full mt-2 overflow-hidden border border-slate-700">
+                  <div id="thermo-prog-3" class="bg-gradient-to-r from-cyan-500 to-blue-600 h-full w-[25%] transition-all duration-100"></div>
+                </div>
+                <div class="text-[10px] text-sky-300/80 mt-1">នៅជិតជើងទ្រ កម្តៅធ្លាក់ចុះទាបជាងគេ</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs text-blue-200 leading-relaxed">
+            📐 <strong>ច្បាប់រូបវិទ្យា (Temperature Gradient)៖</strong><br>
+            ការពិសោធន៍នេះបង្ហាញថា៖
+            $$\frac{dT}{dx} < 0 \quad \text{និង} \quad T_1 > T_2 > T_3$$
+            កម្តៅតែងតែធ្វើដំណើរពីតំបន់ដែលមានសីតុណ្ហភាពខ្ពស់ ទៅរកតំបន់ដែលមានសីតុណ្ហភាពទាបជានិច្ច!
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: INGENHOUSZ CONDUCTION (5 RODS) ==================== -->
+    <section id="tab-conduction" class="space-y-6 hidden">
+      <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="inline-block px-2.5 py-0.5 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 text-xs font-semibold rounded-md mb-1">
+            ឧបករណ៍ពិសោធន៍ពិត (Ingenhousz 5-Rod Conduction Apparatus)
+          </div>
+          <h2 class="text-lg md:text-xl font-bold text-white">ការសង្កេតការចម្លងកម្តៅលើរបារស៊ីឡាំង ៥ ប្រភេទ (មានមាសសុទ្ធ)</h2>
+          <p class="text-xs md:text-sm text-slate-400 mt-1">
+            លំដាប់ល្បឿនចម្លងកម្តៅ៖ <strong class="text-orange-400">ទង់ដែង ($385$)</strong> > <strong class="text-yellow-300">មាស ($314$)</strong> > <strong class="text-sky-300">អាលុយមីញ៉ូម ($205$)</strong> > <strong class="text-slate-300">ដែក ($50$)</strong> >> <strong class="text-amber-500">ឈើ ($0.15$)</strong>
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="cond-start-btn" onclick="toggleConductionSim()" class="px-5 py-2.5 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/30 transition flex items-center gap-2">
+            <span id="cond-main-icon">🔥</span>
+            <span id="cond-main-text">អុជចង្កៀងអាល់កុល</span>
+          </button>
+          <button onclick="resetConductionSim()" class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-xl transition flex items-center gap-2">
+            🔄 ពន្លត់ & រៀបចំថ្មី
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="lg:col-span-3 bg-slate-800/90 p-4 md:p-5 rounded-2xl border border-slate-700 shadow-xl flex flex-col">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></span>
+              <span class="text-sm font-semibold text-slate-200">ទិដ្ឋភាពឧបករណ៍មន្ទីរពិសោធន៍ពិត (Photorealistic View)</span>
+            </div>
+            <span id="cond-timer" class="text-xs md:text-sm font-mono bg-black/60 text-amber-400 border border-slate-700 px-3 py-1 rounded-lg">
+              ⏱️ រយៈពេល៖ 0.0s
+            </span>
+          </div>
+
+          <!-- Viewport with Fullscreen & Zoom Bar -->
+          <div id="cond-viewport" class="lab-viewport relative bg-gradient-to-b from-slate-950 via-[#0e1626] to-[#070b13] rounded-xl overflow-hidden border border-slate-700/80 shadow-2xl">
+            <!-- Floating Quick-Ignite Action Button (Near Alcohol Lamp at Bottom Left) -->
+            <div class="absolute bottom-4 left-4 z-30">
+              <button id="cond-burner-float-btn" onclick="toggleConductionSim()" class="px-4 py-2.5 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-bold text-xs md:text-sm rounded-xl shadow-2xl shadow-amber-500/50 border border-amber-300/60 flex items-center gap-2 backdrop-blur-md transition-all group">
+                <span id="cond-burner-float-icon" class="text-base group-hover:scale-125 transition-transform">🔥</span>
+                <span id="cond-burner-float-text">អុជចង្កៀងអាល់កុល</span>
+              </button>
+            </div>
+
+            <!-- Floating Zoom & Fullscreen Toolbar -->
+            <div class="absolute top-3 right-3 z-30 flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-1.5 rounded-xl shadow-xl">
+              <!-- In-Viewport Quick Ignite Button -->
+              <button id="cond-quick-ignite-btn" onclick="toggleConductionSim()" class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-amber-500/30">
+                <span id="cond-quick-ignite-icon">🔥</span>
+                <span id="cond-quick-ignite-text">អុជចង្កៀង</span>
+              </button>
+              <div class="w-px h-5 bg-slate-700 mx-0.5"></div>
+              <!-- 4K Ultra HD Badge -->
+              <span class="px-2 py-0.5 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono text-[10px] font-bold rounded flex items-center gap-1 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>4K UHD
+              </span>
+              <div class="w-px h-5 bg-slate-700 mx-0.5"></div>
+              <button onclick="zoomCanvas('cond', 0.15)" title="ពង្រីក (Zoom In)" class="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-bold transition">
+                +
+              </button>
+              <button onclick="zoomCanvas('cond', -0.15)" title="បង្រួម (Zoom Out)" class="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-bold transition">
+                −
+              </button>
+              <button onclick="resetZoom('cond')" title="កំណត់ទំហំដើម (100%)" id="cond-zoom-badge" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300 rounded-lg transition">
+                100%
+              </button>
+              <div class="w-px h-5 bg-slate-700 mx-0.5"></div>
+              <button onclick="toggleFullscreen('cond-viewport')" id="fs-btn-cond-viewport" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-blue-600/30">
+                <span class="fs-icon">⛶</span>
+                <span class="fs-text">ពេញអេក្រង់</span>
+              </button>
+            </div>
+
+            <!-- Zoomable Canvas Wrapper -->
+            <div id="cond-zoom-wrapper" class="zoom-wrapper w-full flex justify-center items-center">
+              <canvas id="conductionCanvas" width="3400" height="2080" class="w-full h-auto block" style="aspect-ratio: 850/520;"></canvas>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-700/70 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div>
+              <label class="block font-medium text-slate-300 mb-1">
+                សីតុណ្ហភាពអណ្តាតភ្លើង ($T_{\text{flame}}$)៖ <span id="cond-temp-val" class="text-orange-400 font-bold">180°C</span>
+              </label>
+              <input type="range" id="cond-temp-slider" min="80" max="350" value="180" class="w-full h-2 bg-slate-700 rounded-lg accent-orange-500 cursor-pointer" oninput="updateCondTemp(this.value)">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-300 mb-1">
+                ចម្ងាយម្ជុលពីប្រភពកម្តៅ៖ <span id="cond-dist-val" class="text-blue-400 font-bold">25 cm</span>
+              </label>
+              <input type="range" id="cond-dist-slider" min="15" max="35" value="25" class="w-full h-2 bg-slate-700 rounded-lg accent-blue-500 cursor-pointer" oninput="updateCondDist(this.value)">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-300 mb-1">
+                ល្បឿនពិសោធន៍ (Speed)៖ <span id="cond-speed-val" class="text-emerald-400 font-bold">1.5x</span>
+              </label>
+              <input type="range" id="cond-speed-slider" min="0.5" max="3.0" step="0.5" value="1.5" class="w-full h-2 bg-slate-700 rounded-lg accent-emerald-500 cursor-pointer" oninput="updateCondSpeed(this.value)">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-800/90 p-5 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-base mb-2 flex items-center gap-2">
+              📋 ទិន្នន័យវាស់ស្ទង់ជាក់ស្តែង
+            </h3>
+            <p class="text-xs text-slate-400 mb-3">កត់ត្រាពេលដែលក្រមួនឡើងដល់ $55^\circ\text{C}$ ហើយម្ជុលធ្លាក់ចុះ៖</p>
+
+            <div class="space-y-2.5">
+              <div class="p-2.5 rounded-xl bg-orange-950/30 border border-orange-500/30">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-bold text-orange-200">១. ទង់ដែង (Copper)</span>
+                  <span id="pin-status-cu" class="text-orange-400 font-mono font-bold">កំពុងរង់ចាំ...</span>
+                </div>
+                <div class="w-full bg-slate-900 h-1.5 rounded-full mt-2 overflow-hidden border border-slate-700">
+                  <div id="bar-progress-cu" class="bg-gradient-to-r from-red-600 via-orange-500 to-amber-400 h-full w-0 transition-all duration-100"></div>
+                </div>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-yellow-950/30 border border-yellow-500/40">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-bold text-yellow-300">២. មាសសុទ្ធ (Gold - Au)</span>
+                  <span id="pin-status-au" class="text-yellow-400 font-mono font-bold">កំពុងរង់ចាំ...</span>
+                </div>
+                <div class="w-full bg-slate-900 h-1.5 rounded-full mt-2 overflow-hidden border border-slate-700">
+                  <div id="bar-progress-au" class="bg-gradient-to-r from-amber-600 via-yellow-400 to-yellow-100 h-full w-0 transition-all duration-100"></div>
+                </div>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-sky-950/30 border border-sky-500/30">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-bold text-sky-200">៣. អាលុយមីញ៉ូម (Al)</span>
+                  <span id="pin-status-al" class="text-sky-400 font-mono font-bold">កំពុងរង់ចាំ...</span>
+                </div>
+                <div class="w-full bg-slate-900 h-1.5 rounded-full mt-2 overflow-hidden border border-slate-700">
+                  <div id="bar-progress-al" class="bg-gradient-to-r from-sky-600 to-cyan-400 h-full w-0 transition-all duration-100"></div>
+                </div>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-slate-800/60 border border-slate-600">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-bold text-slate-200">៤. ដែកថែប (Steel)</span>
+                  <span id="pin-status-fe" class="text-slate-400 font-mono font-bold">កំពុងរង់ចាំ...</span>
+                </div>
+                <div class="w-full bg-slate-900 h-1.5 rounded-full mt-2 overflow-hidden border border-slate-700">
+                  <div id="bar-progress-fe" class="bg-gradient-to-r from-slate-600 to-slate-400 h-full w-0 transition-all duration-100"></div>
+                </div>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-amber-950/20 border border-amber-700/30">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-bold text-amber-300">៥. របារឈើ (Wood)</span>
+                  <span id="pin-status-wood" class="text-amber-500 font-mono font-bold">អ៊ីសូឡង់</span>
+                </div>
+                <div class="w-full bg-slate-900 h-1.5 rounded-full mt-2 overflow-hidden border border-slate-700">
+                  <div id="bar-progress-wood" class="bg-amber-600 h-full w-0"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-xs text-yellow-200 leading-relaxed">
+            👑 <strong>ការពិតអំពីមាស៖</strong> មាស ($k = 314$) ធ្លាក់លឿនជាងអាលុយមីញ៉ូម និងដែក តែនៅតែចាញ់ទង់ដែង ($k = 385$)។
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: THERMAL CONVECTION (CAN & TURBINE) ==================== -->
+    <section id="tab-convection" class="space-y-6 hidden">
+      <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="inline-block px-2.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold rounded-md mb-1">
+            មេរៀនទី ២៖ ចរន្តវិលវល់ (Thermal Convection Turbine Apparatus) ✨ ពិសោធន៍ថ្មី
+          </div>
+          <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+            <span>ពិសោធន៍បំពង់កំប៉ុងចរន្តវិលវល់ខ្យល់កម្តៅ & កង្ហារក្រដាសវិល</span>
+          </h2>
+          <p class="text-xs md:text-sm text-slate-400 mt-1">
+            ការបង្ហាញចរន្តវិលវល់នៃខ្យល់ (Thermal Convection Draft) ដោយសារខ្យល់ក្តៅរីកមាឌ ស្រាលជាងខ្យល់ត្រជាក់ បក់ឡើងលើតាមបំពង់កំប៉ុង រុញកង្ហារក្រដាសឱ្យវិលលឿនឥតឈប់ឈរ។ <span class="text-amber-400 font-semibold">(💡 គន្លឹះ៖ ចុចលើទៀនក្នុងកំប៉ុង ឬដែកកេះផ្ទាល់ ដើម្បីអុជ ឬពន្លត់ទៀន)</span>
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- Main Header ON/OFF Flame Control Group -->
+          <div class="flex items-center bg-slate-900/90 border border-slate-700/80 p-1 rounded-xl gap-1 shadow-md">
+            <button id="conv-hdr-btn-on" onclick="setConvFlame(true)" title="បើកភ្លើងទៀន (ON)" class="px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-slate-800 text-slate-400 hover:text-amber-300 active:scale-95 animate-pulse">
+              <span>🔥</span> បើកភ្លើង (ON)
+            </button>
+            <button id="conv-hdr-btn-off" onclick="setConvFlame(false)" title="បិទភ្លើងទៀន (OFF)" class="px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-md active:scale-95">
+              <span>💨</span> បិទភ្លើង (OFF)
+            </button>
+          </div>
+          <button onclick="resetConvSim()" class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-200 font-medium rounded-xl transition flex items-center gap-2">
+            🔄 កំណត់ឡើងវិញ
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Viewport (Col 1-3) -->
+        <div class="lg:col-span-3 space-y-4">
+          <div id="conv-viewport" class="lab-viewport relative bg-gradient-to-b from-[#0c1424] via-[#08101e] to-[#040812] rounded-xl overflow-hidden border border-slate-700/80 shadow-2xl">
+            <!-- Floating Candle Flame ON / OFF Control Panel (Top-Left of Viewport) -->
+            <div class="absolute top-3 left-3 z-30 flex items-center bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-1.5 rounded-2xl shadow-2xl gap-1.5">
+              <div class="px-2.5 py-1 text-xs font-bold text-slate-300 flex items-center gap-1.5 border-r border-slate-700/80">
+                <span class="text-sm">🕯️</span>
+                <span>ភ្លើងទៀន៖</span>
+              </div>
+              <!-- Button: បើក (ON) -->
+              <button id="conv-btn-open" onclick="setConvFlame(true)" title="បើកភ្លើងទៀន (Turn ON Flame)" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95 bg-slate-800/80 hover:bg-amber-950/60 text-slate-400 hover:text-amber-300 border border-slate-700/80 animate-pulse">
+                <span>🔥</span>
+                <span>បើក (ON)</span>
+              </button>
+              <!-- Button: បិទ (OFF) -->
+              <button id="conv-btn-close" onclick="setConvFlame(false)" title="បិទភ្លើងទៀន (Turn OFF Flame)" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95 bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-lg shadow-red-500/40 border border-rose-400/60 ring-2 ring-rose-500/50">
+                <span>💨</span>
+                <span>បិទ (OFF)</span>
+              </button>
+            </div>
+
+            <!-- Floating Quick-Action Pill (Bottom Right near table) -->
+            <div class="absolute bottom-4 right-4 z-30">
+              <button id="conv-table-toggle-btn" onclick="toggleConvFlame()" class="px-3.5 py-2 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-bold text-xs rounded-xl shadow-xl border border-amber-400/40 flex items-center gap-2 backdrop-blur-md transition-all active:scale-95 animate-pulse">
+                <span id="conv-table-toggle-icon">🔥</span>
+                <span id="conv-table-toggle-text">បើកភ្លើងទៀន (ON)</span>
+              </button>
+            </div>
+
+            <!-- Floating Zoom & Fullscreen Toolbar -->
+            <div class="absolute top-3 right-3 z-30 flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-1.5 rounded-xl shadow-xl">
+              <!-- Quick ON/OFF Toggle Button in Viewport Toolbar -->
+              <button id="conv-quick-ignite-btn" onclick="toggleConvFlame()" class="px-3 py-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-orange-500/30">
+                <span id="conv-quick-ignite-icon">🔥</span>
+                <span id="conv-quick-ignite-text">បើកភ្លើង</span>
+              </button>
+              <div class="w-px h-5 bg-slate-700 mx-0.5"></div>
+              <!-- 4K Ultra HD Badge -->
+              <span class="px-2 py-0.5 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono text-[10px] font-bold rounded flex items-center gap-1 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>4K UHD
+              </span>
+              <div class="w-px h-5 bg-slate-700 mx-0.5"></div>
+              <button onclick="zoomCanvas('conv', 0.15)" title="ពង្រីក (Zoom In)" class="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-bold transition">
+                +
+              </button>
+              <button onclick="zoomCanvas('conv', -0.15)" title="បង្រួម (Zoom Out)" class="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-bold transition">
+                −
+              </button>
+              <button onclick="resetZoom('conv')" title="កំណត់ទំហំដើម (100%)" id="conv-zoom-badge" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300 rounded-lg transition">
+                100%
+              </button>
+              <div class="w-px h-5 bg-slate-700 mx-0.5"></div>
+              <button onclick="toggleFullscreen('conv-viewport')" id="fs-btn-conv-viewport" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-blue-600/30">
+                <span class="fs-icon">⛶</span>
+                <span class="fs-text">ពេញអេក្រង់</span>
+              </button>
+            </div>
+
+            <!-- Zoomable Canvas Wrapper -->
+            <div id="conv-zoom-wrapper" class="zoom-wrapper w-full flex justify-center items-center">
+              <canvas id="convectionCanvas" width="3400" height="2000" class="w-full h-auto block" style="aspect-ratio: 850/500;"></canvas>
+            </div>
+          </div>
+
+          <!-- Bottom Sliders & Quick Controls -->
+          <div class="p-4 bg-slate-800/80 rounded-xl border border-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div>
+              <div class="flex justify-between font-medium text-slate-300 mb-1">
+                <span>សីតុណ្ហភាពអណ្តាតភ្លើង ($T_{\text{flame}}$)៖</span>
+                <span id="conv-temp-val" class="text-orange-400 font-bold">200°C</span>
+              </div>
+              <input type="range" id="conv-temp-slider" min="60" max="350" value="200" class="w-full h-2 bg-slate-700 rounded-lg accent-orange-500 cursor-pointer" oninput="updateConvTemp(this.value)">
+              <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                <span>ខ្សោយ (60°C)</span>
+                <span>មធ្យម (200°C)</span>
+                <span>ខ្លាំង (350°C)</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between font-medium text-slate-300 mb-1">
+                <span>កម្ពស់កង្ហារក្រដាសពីមាត់កំប៉ុង៖</span>
+                <span id="conv-height-val" class="text-cyan-400 font-bold">មធ្យម (4.0 cm)</span>
+              </div>
+              <input type="range" id="conv-height-slider" min="1" max="5" value="3" class="w-full h-2 bg-slate-700 rounded-lg accent-cyan-500 cursor-pointer" oninput="updateConvHeight(this.value)">
+              <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                <span>ជិត (1.5 cm)</span>
+                <span>ឆ្ងាយ (8.0 cm)</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/60">
+              <div>
+                <span class="block font-medium text-slate-200">រន្ធខ្យល់បាតកំប៉ុង (Air Gap)៖</span>
+                <span id="conv-intake-status" class="text-[11px] text-emerald-400 font-bold">● បើកចំហ (មានជើងកល់)</span>
+              </div>
+              <button onclick="toggleAirIntake()" id="conv-intake-btn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition">
+                បិទរន្ធបាត
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar Metrics & Science Panel (Col 4) -->
+        <div class="space-y-4">
+          <!-- Real-Time Convection Physics Gauges -->
+          <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 shadow-md space-y-4">
+            <h3 class="font-bold text-slate-200 text-sm border-b border-slate-700 pb-2 flex items-center justify-between">
+              <span>📊 ទិន្នន័យចរន្តវិលវល់ (Live Metrics)</span>
+              <span id="conv-state-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                ឈប់វិល (គ្មានចរន្ត)
+              </span>
+            </h3>
+
+            <!-- Updraft Velocity Gauge -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">ល្បឿនខ្យល់បក់ឡើង ($v_{\text{draft}}$)៖</span>
+                <span id="conv-vel-val" class="font-bold font-mono text-cyan-400">0.0 m/s</span>
+              </div>
+              <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                <div id="conv-vel-bar" class="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Turbine RPM Gauge -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">ល្បឿនរង្វិលកង្ហារ ($\omega$)៖</span>
+                <span id="conv-rpm-val" class="font-bold font-mono text-amber-400">0 RPM</span>
+              </div>
+              <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                <div id="conv-rpm-bar" class="bg-gradient-to-r from-amber-500 to-orange-500 h-2 rounded-full transition-all duration-300" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Temperature Inside Can -->
+            <div class="p-3 bg-slate-900/70 rounded-xl border border-slate-700/60 grid grid-cols-2 gap-2 text-center text-xs">
+              <div>
+                <span class="text-slate-400 block text-[11px]">ក្នុងកំប៉ុង ($T_{\text{in}}$)</span>
+                <span id="conv-temp-in" class="text-orange-400 font-bold font-mono text-sm">25.0 °C</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[11px]">ក្រៅកំប៉ុង ($T_{\text{out}}$)</span>
+                <span class="text-slate-300 font-bold font-mono text-sm">25.0 °C</span>
+              </div>
+            </div>
+
+            <!-- Toggles for Options -->
+            <div class="space-y-2 pt-2 border-t border-slate-700 text-xs">
+              <label class="block text-slate-300 font-medium mb-1">ម៉ូតកង្ហារក្រដាស (Turbine Style)៖</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="setTurbineStyle('pinwheel')" id="btn-style-pinwheel" class="px-2.5 py-1.5 bg-blue-600 text-white font-bold rounded-lg border border-blue-400 text-center transition">
+                  កង្ហារស្លាប ៤ (Pinwheel)
+                </button>
+                <button onclick="setTurbineStyle('spiral')" id="btn-style-spiral" class="px-2.5 py-1.5 bg-slate-700 text-slate-300 font-medium rounded-lg border border-slate-600 text-center transition hover:bg-slate-600">
+                  គូទខ្យងវិល (Spiral)
+                </button>
+              </div>
+
+              <div class="pt-2 flex flex-col gap-2">
+                <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+                  <input type="checkbox" id="conv-stream-toggle" checked onchange="convShowStreamlines = this.checked;" class="rounded accent-blue-500">
+                  <span>បង្ហាញខ្សែចរន្តខ្យល់ (Streamlines)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+                  <input type="checkbox" id="conv-particles-toggle" checked onchange="convShowParticles = this.checked;" class="rounded accent-blue-500">
+                  <span>បង្ហាញភាគល្អិតកម្តៅ (Thermal Particles)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scientific Explanation Card -->
+          <div class="bg-gradient-to-br from-slate-800 to-amber-950/20 p-5 rounded-2xl border border-amber-600/30 shadow-md text-xs space-y-2">
+            <h4 class="font-bold text-amber-400 flex items-center gap-1.5 text-sm">
+              💡 គោលការណ៍រូបវិទ្យា (Physics Principles)
+            </h4>
+            <p class="text-slate-300 leading-relaxed">
+              <strong>១. ហេតុអ្វីកង្ហារវិលបាន?</strong> នៅពេលអុជភ្លើង ខ្យល់ក្នុងកំប៉ុងឡើងកម្តៅ រីកមាឌ និងមាន<strong>ម៉ាសមាឌតូចជាង</strong>ខ្យល់ត្រជាក់ជុំវិញ ($\rho_{\text{hot}} < \rho_{\text{cold}}$) ធ្វើឱ្យខ្យល់ក្តៅបក់ឡើងលើ (Buoyant Updraft) រុញស្លាបកង្ហារឱ្យវិល។
+            </p>
+            <p class="text-slate-300 leading-relaxed">
+              <strong>២. សារៈសំខាន់នៃរន្ធបាតកំប៉ុង៖</strong> បើដកជើងកល់ចេញ (បិទរន្ធបាត) ខ្យល់ត្រជាក់មិនអាចចូលបានទេ ធ្វើឱ្យចរន្តខ្យល់កកស្ទះ និងភ្លើងរលត់ $\rightarrow$ <strong>ចរន្តវិលវល់ត្រូវកាត់ផ្តាច់ កង្ហារឈប់វិល!</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: EDDY CURRENTS ==================== -->
+    <section id="tab-eddy" class="space-y-6 hidden">
+      <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="inline-block px-2.5 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-semibold rounded-md mb-1">
+            ឧបករណ៍ពិសោធន៍ពិត (Lenz's Law Eddy Current Tube Apparatus)
+          </div>
+          <h2 class="text-lg md:text-xl font-bold text-white">ការទម្លាក់មេដែក Neodymium ក្នុងបំពង់ស៊ីឡាំង ៤ ប្រភេទ</h2>
+          <p class="text-xs md:text-sm text-slate-400 mt-1">
+            បំពង់នីមួយៗត្រូវបានកាត់បង្ហាញខាងក្នុង (Cutaway View) ដើម្បីមើលឃើញចលនាមេដែក, ដែនម៉ាញេទិច និងរង្វង់ចរន្តវិលវល់ពិតៗ។
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="eddy-drop-btn" onclick="startEddySim()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition flex items-center gap-2">
+            <span>🧲 ទម្លាក់មេដែកទាំងអស់</span>
+          </button>
+          <button onclick="resetEddySim()" class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-xl transition">
+            🔄 លើកមេដែកឡើងលើវិញ
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="lg:col-span-3 bg-slate-800/90 p-4 md:p-5 rounded-2xl border border-slate-700 shadow-xl flex flex-col">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></span>
+              <span class="text-sm font-semibold text-slate-200">ទិដ្ឋភាពបំពង់ពិសោធន៍ពិត (Cutaway 3D Apparatus)</span>
+            </div>
+            <span id="eddy-timer" class="text-xs md:text-sm font-mono bg-black/60 text-cyan-400 border border-slate-700 px-3 py-1 rounded-lg">
+              ⏱️ រយៈពេលធ្លាក់៖ 0.00s
+            </span>
+          </div>
+
+          <!-- Viewport with Fullscreen & Zoom Bar -->
+          <div id="eddy-viewport" class="lab-viewport relative bg-gradient-to-b from-slate-950 via-[#0a1120] to-[#050810] rounded-xl overflow-hidden border border-slate-700/80 shadow-2xl">
+            <!-- Floating Zoom & Fullscreen Toolbar -->
+            <div class="absolute top-3 right-3 z-30 flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-1.5 rounded-xl shadow-xl">
+              <!-- 4K Ultra HD Badge -->
+              <span class="px-2 py-0.5 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono text-[10px] font-bold rounded flex items-center gap-1 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>4K UHD
+              </span>
+              <div class="w-px h-5 bg-slate-700 mx-0.5"></div>
+              <button onclick="zoomCanvas('eddy', 0.15)" title="ពង្រីក (Zoom In)" class="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-bold transition">
+                +
+              </button>
+              <button onclick="zoomCanvas('eddy', -0.15)" title="បង្រួម (Zoom Out)" class="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-bold transition">
+                −
+              </button>
+              <button onclick="resetZoom('eddy')" title="កំណត់ទំហំដើម (100%)" id="eddy-zoom-badge" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300 rounded-lg transition">
+                100%
+              </button>
+              <div class="w-px h-5 bg-slate-700 mx-0.5"></div>
+              <button onclick="toggleFullscreen('eddy-viewport')" id="fs-btn-eddy-viewport" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-blue-600/30">
+                <span class="fs-icon">⛶</span>
+                <span class="fs-text">ពេញអេក្រង់</span>
+              </button>
+            </div>
+
+            <!-- Zoomable Canvas Wrapper -->
+            <div id="eddy-zoom-wrapper" class="zoom-wrapper w-full flex justify-center items-center">
+              <canvas id="eddyCanvas" width="3400" height="1960" class="w-full h-auto block" style="aspect-ratio: 850/490;"></canvas>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-700/70 grid grid-cols-4 gap-2 text-center text-xs">
+            <div class="p-2 bg-slate-800/80 rounded-xl border border-slate-700">
+              <strong class="text-slate-300 block">១. បំពង់ជ័រ PVC</strong>
+              <span class="text-slate-400 text-[11px]">ធ្លាក់សេរី ($g = 9.8\text{ m/s}^2$)</span>
+            </div>
+            <div class="p-2 bg-amber-950/30 rounded-xl border border-amber-600/40">
+              <strong class="text-amber-400 block">២. បំពង់ទង់ដែងសុទ្ធ</strong>
+              <span class="text-amber-300 text-[11px]">ហ្វ្រាំងខ្លាំងបំផុត (ធ្លាក់យឺត)</span>
+            </div>
+            <div class="p-2 bg-sky-950/30 rounded-xl border border-sky-600/40">
+              <strong class="text-sky-400 block">៣. បំពង់អាលុយមីញ៉ូម</strong>
+              <span class="text-sky-300 text-[11px]">ហ្វ្រាំងមធ្យម</span>
+            </div>
+            <div class="p-2 bg-purple-950/30 rounded-xl border border-purple-600/40">
+              <strong class="text-purple-400 block">៤. បំពង់ឆែកបណ្តោយ</strong>
+              <span class="text-purple-300 text-[11px]">ដាច់រង្វង់ចរន្ត (គ្មានហ្វ្រាំង)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-800/90 p-5 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-base mb-2">⏱️ ថិរវេលាធ្លាក់ដល់បាតបំពង់ ($L = 1.0\text{ m}$)</h3>
+            <p class="text-xs text-slate-400 mb-4">ប្រៀបធៀបពេលវេលាដែលមេដែក Neodymium ធ្លាក់ឆ្លងកាត់បំពង់នីមួយៗ៖</p>
+
+            <div class="space-y-3.5 text-xs">
+              <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-700">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="font-bold text-slate-300">បំពង់ PVC (ជ័រ)</span>
+                  <span id="time-pvc" class="font-mono font-bold text-slate-400">--</span>
+                </div>
+                <div class="text-[11px] text-slate-400">ធ្លាក់ចុះលឿនធម្មតា គ្មានចរន្តវិលវល់</div>
+              </div>
+
+              <div class="p-3 bg-amber-950/40 rounded-xl border border-amber-500/40">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="font-bold text-amber-300">បំពង់ទង់ដែង (Copper)</span>
+                  <span id="time-cu" class="font-mono font-bold text-amber-400 text-sm">--</span>
+                </div>
+                <div class="text-[11px] text-amber-300/80 font-medium">ធ្លាក់យឺតខ្លាំង ហាក់ដូចជាអណ្តែតក្នុងទឹកឃ្មុំ!</div>
+              </div>
+
+              <div class="p-3 bg-sky-950/40 rounded-xl border border-sky-500/40">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="font-bold text-sky-300">បំពង់អាលុយមីញ៉ូម (Al)</span>
+                  <span id="time-al" class="font-mono font-bold text-sky-400 text-sm">--</span>
+                </div>
+                <div class="text-[11px] text-sky-300/80">ធ្លាក់យឺតមធ្យម ព្រោះរេស៊ីស្តង់ធំជាងទង់ដែង</div>
+              </div>
+
+              <div class="p-3 bg-purple-950/40 rounded-xl border border-purple-500/40">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="font-bold text-purple-300">បំពង់ទង់ដែងឆែកបណ្តោយ</span>
+                  <span id="time-slot" class="font-mono font-bold text-purple-400">--</span>
+                </div>
+                <div class="text-[11px] text-purple-300/80">ស្នាមឆែកបានកាត់ផ្តាច់រង្វង់ចរន្ត គ្មានកម្លាំងហ្វ្រាំង</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-xs text-indigo-200 leading-relaxed">
+            ⚡ <strong>ច្បាប់លេន (Lenz's Law)៖</strong> ប៉ូល N នៃមេដែកបង្កើតចរន្តវិលវល់ដែលបង្កើតដែនម៉ាញេទិចរុញច្រានឡើងលើប្រឆាំងនឹងចលនាធ្លាក់។
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: REAL APPARATUS CATALOG ==================== -->
+    <section id="tab-catalog" class="space-y-6 hidden">
+      <div class="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 shadow-md">
+        <div class="inline-block px-2.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold rounded-md mb-2">
+          បញ្ជីសម្ភាររូបវិទ្យាជាក់ស្តែង (Actual Lab Hardware)
+        </div>
+        <h2 class="text-xl font-bold text-white mb-2">ព័ត៌មានលម្អិតអំពីឧបករណ៍ពិតៗសម្រាប់ទិញ ឬរៀបចំក្នុងសាលា</h2>
+        <p class="text-sm text-slate-400 mb-6">
+          ឈ្មោះបច្ចេកទេស និងទំហំខ្នាតស្តង់ដារដែលលោកគ្រូ-អ្នកគ្រូ ឬសិស្សអាចស្វែងរកជាវ ឬដំឡើងបានពិតៗ៖
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="bg-slate-900/90 rounded-2xl p-5 border border-slate-700 shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="w-full h-36 bg-slate-950 rounded-xl flex items-center justify-center text-5xl mb-3">🌡️</div>
+              <span class="text-[10px] font-bold text-rose-400 uppercase">ឧបករណ៍មន្ទីរពិសោធន៍</span>
+              <h3 class="text-base font-bold text-white mt-1">ឈុតចម្លងកម្តៅ & ទែម៉ូម៉ែត្រ ៣ ដើម</h3>
+              <p class="text-xs text-slate-400 mt-2">
+                រួមមានចង្កៀងប៊ុនសិន (Bunsen Burner), បំពង់ទុយោហ្គាស, របារលោហៈប្រវែង $50\text{ cm}$, ជើងទ្រ និងទែម៉ូម៉ែត្រកែវ $0-100^\circ\text{C}$ ចំនួន ៣ ដើម។
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-300">
+              <span class="block text-slate-500">ឈ្មោះពាណិជ្ជកម្ម៖</span>
+              <strong class="text-emerald-400">Thermal Conduction Bar with 3 Thermometers</strong>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/90 rounded-2xl p-5 border border-slate-700 shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="w-full h-36 bg-slate-950 rounded-xl flex items-center justify-center text-5xl mb-3">⭐</div>
+              <span class="text-[10px] font-bold text-orange-400 uppercase">ឧបករណ៍មន្ទីរពិសោធន៍</span>
+              <h3 class="text-base font-bold text-white mt-1">ឧបករណ៍ផ្កាយចម្លងកម្តៅ ៥ របារ (Ingenhousz)</h3>
+              <p class="text-xs text-slate-400 mt-2">
+                ប្រអប់លង្ហិនកណ្តាលភ្ជាប់ដោយរបារលោហៈ ៥ ប្រភេទ (ទង់ដែង, មាស, អាលុយមីញ៉ូម, ដែកថែប, ឈើ)។
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-300">
+              <span class="block text-slate-500">ឈ្មោះពាណិជ្ជកម្ម៖</span>
+              <strong class="text-emerald-400">Conductivity Star / Ingenhousz Apparatus</strong>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/90 rounded-2xl p-5 border border-slate-700 shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="w-full h-36 bg-slate-950 rounded-xl flex items-center justify-center text-5xl mb-3">🧲</div>
+              <span class="text-[10px] font-bold text-blue-400 uppercase">ឧបករណ៍មន្ទីរពិសោធន៍</span>
+              <h3 class="text-base font-bold text-white mt-1">បំពង់ទង់ដែង 22mm & មេដែក Neodymium N52</h3>
+              <p class="text-xs text-slate-400 mt-2">
+                បំពង់ទង់ដែងម៉ាស៊ីនត្រជាក់កម្រាស់ $1.5\text{ mm}$ និងមេដែកកម្លាំងខ្លាំង Neodymium $\varnothing 18\text{ mm}$ សម្រាប់បង្ហាញចរន្តវិលវល់។
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-300">
+              <span class="block text-slate-500">ឈ្មោះពាណិជ្ជកម្ម៖</span>
+              <strong class="text-emerald-400">Eddy Current Tube Demonstration Kit</strong>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/90 rounded-2xl p-5 border border-slate-700 shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="w-full h-36 bg-slate-950 rounded-xl flex items-center justify-center text-5xl mb-3">🌀</div>
+              <span class="text-[10px] font-bold text-amber-400 uppercase">ឧបករណ៍ច្នៃបង្កើតងាយស្រួល (DIY Lab)</span>
+              <h3 class="text-base font-bold text-white mt-1">ឈុតកំប៉ុងចរន្តវិលវល់ខ្យល់ & កង្ហារក្រដាស</h3>
+              <p class="text-xs text-slate-400 mt-2">
+                រួមមានកំប៉ុងសំណប៉ាហាំង ២ កំប៉ុងកាត់បាតតភ្ជាប់គ្នា, ជើងកល់បាត $2\text{ cm}$, ទៀន ឬចង្កៀងប្រេងតូច, ឈើចង្កឹះ & ម្ជុលដេរ, ក្រដាសបត់កង្ហារ និងស្រោមដៃការពារកម្តៅ។
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-300">
+              <span class="block text-slate-500">ឈ្មោះពាណិជ្ជកម្ម / DIY៖</span>
+              <strong class="text-amber-400">Thermal Convection Chimney & Turbine Demonstrator</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 6: QUIZ ==================== -->
+    <section id="tab-quiz" class="space-y-6 hidden">
+      <div class="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 shadow-md">
+        <h2 class="text-xl font-bold text-white mb-2">📝 កម្រងសំណួរត្រួតពិនិត្យចំណេះដឹង (Interactive Quiz)</h2>
+        <p class="text-sm text-slate-400 mb-6">ឆ្លើយសំណួរខាងក្រោមដើម្បីវាយតម្លៃការយល់ដឹងលើការពិសោធន៍៖</p>
+
+        <div class="space-y-6">
+          <div class="p-5 bg-slate-900/90 rounded-xl border border-slate-700">
+            <p class="font-bold text-white text-sm mb-3">១. ក្នុងការពិសោធន៍ទែម៉ូម៉ែត្រ ៣ ដើមលើរបារតែមួយ ហេតុអ្វីបានជា $T_1 > T_2 > T_3$?</p>
+            <div class="space-y-2 text-xs">
+              <label class="flex items-center gap-2 p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                <input type="radio" name="q1" value="grad" class="accent-blue-500"> ពីព្រោះកម្តៅធ្វើដំណើរពីប្រភពក្តៅ ហើយបាត់បង់ថាមពលបន្តិចម្តងៗទៅក្នុងបរិយាកាសតាមចម្ងាយ (ក្រាដ្យង់សីតុណ្ហភាព)
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                <input type="radio" name="q1" value="broken" class="accent-blue-500"> ពីព្រោះទែម៉ូម៉ែត្រទី ៣ ខូច មិនអាចឡើងកម្តៅបាន
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                <input type="radio" name="q1" value="same" class="accent-blue-500"> ប្រសិនបើរង់ចាំយូរ សីតុណ្ហភាពទាំង ៣ នឹងស្មើគ្នាស្មើនឹងភ្លើងប៊ុនសិន
+              </label>
+            </div>
+            <div id="q1-feedback" class="mt-2 text-xs font-semibold hidden"></div>
+          </div>
+
+          <div class="p-5 bg-slate-900/90 rounded-xl border border-slate-700">
+            <p class="font-bold text-white text-sm mb-3">២. រវាង «ទង់ដែង» និង «មាស» តើលោហៈមួយណាដែលមានសមត្ថភាពចម្លងកម្តៅបានលឿនជាង?</p>
+            <div class="space-y-2 text-xs">
+              <label class="flex items-center gap-2 p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                <input type="radio" name="q2" value="au" class="accent-blue-500"> របារមាស (Gold) ព្រោះមាសជាលោហៈមានតម្លៃជាងគេ
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                <input type="radio" name="q2" value="cu" class="accent-blue-500"> របារទង់ដែង (Copper) ព្រោះទង់ដែងមានមេគុណកម្តៅធំជាង ($385 > 314$)
+              </label>
+            </div>
+            <div id="q2-feedback" class="mt-2 text-xs font-semibold hidden"></div>
+          </div>
+
+          <div class="p-5 bg-slate-900/90 rounded-xl border border-slate-700">
+            <p class="font-bold text-white text-sm mb-3">៣. ហេតុអ្វីបានជាមេដែក Neodymium ធ្លាក់យឺតខ្លាំងក្នុងបំពង់ទង់ដែង?</p>
+            <div class="space-y-2 text-xs">
+              <label class="flex items-center gap-2 p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                <input type="radio" name="q3" value="friction" class="accent-blue-500"> ដោយសារកកិតខ្យល់ក្នុងបំពង់ខ្លាំងពេក
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                <input type="radio" name="q3" value="eddy" class="accent-blue-500"> ដោយសារចរន្តវិលវល់បង្កើតដែនម៉ាញេទិចប្រឆាំងនឹងចលនាមេដែក (ច្បាប់លេន)
+              </label>
+            </div>
+            <div id="q3-feedback" class="mt-2 text-xs font-semibold hidden"></div>
+          </div>
+
+          <div class="p-5 bg-slate-900/90 rounded-xl border border-slate-700">
+            <p class="font-bold text-white text-sm mb-3">៤. ក្នុងពិសោធន៍បំពង់កំប៉ុង និងកង្ហារក្រដាស តើកត្តាអ្វីដែលធ្វើឱ្យកង្ហារក្រដាសវិលបាន?</p>
+            <div class="space-y-2 text-xs">
+              <label class="flex items-center gap-2 p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                <input type="radio" name="q4" value="conv" class="accent-blue-500"> ខ្យល់ក្តៅក្នុងកំប៉ុងរីកមាឌ មានម៉ាសមាឌតូចជាងខ្យល់ត្រជាក់ បក់ឡើងលើបង្កើតជាចរន្តវិលវល់ (Convection Draft) រុញស្លាបកង្ហារ
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                <input type="radio" name="q4" value="mag" class="accent-blue-500"> ដោយសារដែនម៉ាញេទិចរបស់កំប៉ុងដែករុញក្រដាស
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                <input type="radio" name="q4" value="static" class="accent-blue-500"> ដោយសារកម្លាំងទំនាញផែនដីទាញស្លាបកង្ហារ
+              </label>
+            </div>
+            <div id="q4-feedback" class="mt-2 text-xs font-semibold hidden"></div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex items-center justify-between">
+          <button onclick="checkQuizAnswers()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow transition text-sm">
+            ✅ ផ្ទៀងផ្ទាត់ចម្លើយ
+          </button>
+          <div id="quiz-score" class="text-sm font-bold text-white"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'text-blue-500', 'font-semibold');
+        btn.classList.add('text-slate-400');
+      });
+
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('tab-btn-' + tabId);
+      activeBtn.classList.add('active', 'text-blue-500', 'font-semibold');
+      activeBtn.classList.remove('text-slate-400');
+
+      if (tabId === 'thermo') drawThermoSimulation();
+      if (tabId === 'conduction') drawConductionRealistic();
+      if (tabId === 'convection') {
+        startConvLoop();
+        drawConvectionRealistic();
+      }
+      if (tabId === 'eddy') drawEddyRealistic();
+    }
+
+    // ====================================================
+    // 4K ULTRA-HD (UHD) CRISP VECTOR CANVAS ENGINE
+    // ====================================================
+    const UHD_SCALE = 4; // 4x supersampling -> 3400x2000px internal buffer for true 4K sharpness
+    const LOGICAL_WIDTH = 850;
+    const LOGICAL_HEIGHT_THERMO = 490;
+    const LOGICAL_HEIGHT_COND = 520;
+    const LOGICAL_HEIGHT_CONV = 500;
+    const LOGICAL_HEIGHT_EDDY = 490;
+
+    const thermoCanvas = document.getElementById('thermoCanvas');
+    const tCtx = thermoCanvas ? thermoCanvas.getContext('2d') : null;
+
+    const condCanvas = document.getElementById('conductionCanvas');
+    const condCtx = condCanvas ? condCanvas.getContext('2d') : null;
+
+    const convCanvas = document.getElementById('convectionCanvas');
+    const convCtx = convCanvas ? convCanvas.getContext('2d') : null;
+
+    const eddyCanvas = document.getElementById('eddyCanvas');
+    const eddyCtx = eddyCanvas ? eddyCanvas.getContext('2d') : null;
+
+    function setupUltraHdCanvas(canvas, ctx, logW, logH) {
+      if (!canvas || !ctx) return;
+      canvas.width = logW * UHD_SCALE;
+      canvas.height = logH * UHD_SCALE;
+      canvas.style.aspectRatio = `${logW} / ${logH}`;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+    }
+
+    function initUltraHdAll() {
+      setupUltraHdCanvas(thermoCanvas, tCtx, LOGICAL_WIDTH, LOGICAL_HEIGHT_THERMO);
+      setupUltraHdCanvas(condCanvas, condCtx, LOGICAL_WIDTH, LOGICAL_HEIGHT_COND);
+      setupUltraHdCanvas(convCanvas, convCtx, LOGICAL_WIDTH, LOGICAL_HEIGHT_CONV);
+      setupUltraHdCanvas(eddyCanvas, eddyCtx, LOGICAL_WIDTH, LOGICAL_HEIGHT_EDDY);
+    }
+
+    // Initialize immediately
+    initUltraHdAll();
+
+    // ====================================================
+    // FULLSCREEN & ZOOM CONTROLS
+    // ====================================================
+    const zoomLevels = {
+      thermo: 1.0,
+      cond: 1.0,
+      conv: 1.0,
+      eddy: 1.0
+    };
+
+    function zoomCanvas(simKey, delta) {
+      let current = zoomLevels[simKey] || 1.0;
+      current = Math.min(2.5, Math.max(0.6, current + delta));
+      zoomLevels[simKey] = current;
+
+      const wrapper = document.getElementById(simKey + '-zoom-wrapper');
+      if (wrapper) {
+        wrapper.style.transform = `scale(${current})`;
+      }
+      const badge = document.getElementById(simKey + '-zoom-badge');
+      if (badge) {
+        badge.innerText = Math.round(current * 100) + '%';
+      }
+    }
+
+    function resetZoom(simKey) {
+      zoomLevels[simKey] = 1.0;
+      const wrapper = document.getElementById(simKey + '-zoom-wrapper');
+      if (wrapper) {
+        wrapper.style.transform = 'scale(1.0)';
+      }
+      const badge = document.getElementById(simKey + '-zoom-badge');
+      if (badge) {
+        badge.innerText = '100%';
+      }
+    }
+
+    function toggleFullscreen(containerId) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (el.requestFullscreen) {
+          el.requestFullscreen();
+        } else if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    }
+
+    // Listen to Fullscreen Change to update button icons & labels
+    function updateFullscreenButtons() {
+      const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      const fsButtons = document.querySelectorAll('[id^="fs-btn-"]');
+      fsButtons.forEach(btn => {
+        const icon = btn.querySelector('.fs-icon');
+        const text = btn.querySelector('.fs-text');
+        if (isFS) {
+          if (icon) icon.innerText = '⤓';
+          if (text) text.innerText = 'បង្រួមមកវិញ';
+          btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+          btn.classList.add('bg-rose-600', 'hover:bg-rose-500');
+        } else {
+          if (icon) icon.innerText = '⛶';
+          if (text) text.innerText = 'ពេញអេក្រង់';
+          btn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
+          btn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+        }
+      });
+      // Re-render in crystal-clear 4K upon resize / fullscreen change
+      setTimeout(() => {
+        drawThermoSimulation();
+        drawConductionRealistic();
+        drawConvectionRealistic();
+        drawEddyRealistic();
+      }, 50);
+    }
+
+    document.addEventListener('fullscreenchange', updateFullscreenButtons);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenButtons);
+
+    // ====================================================
+    // 1. THERMOMETER EXPERIMENT
+    // ====================================================
+    let thermoRunning = false;
+    let thermoTime = 0;
+    let thermoSpeed = 1.5;
+    let thermoFlameTemp = 250;
+    let thermoRodType = 'copper';
+    let thermoAnimFrame = null;
+
+    let T_ambient = 25.0;
+    let T1 = 25.0;
+    let T2 = 25.0;
+    let T3 = 25.0;
+
+    const rodThermalProps = {
+      copper:   { k: 385, diff: 1.0,  name: 'ទង់ដែង', colorTop: '#ea580c', colorMid: '#f97316', colorBot: '#9a3412' },
+      gold:     { k: 314, diff: 0.82, name: 'មាស',   colorTop: '#f59e0b', colorMid: '#fde047', colorBot: '#b45309' },
+      aluminum: { k: 205, diff: 0.65, name: 'អាលុយមីញ៉ូម', colorTop: '#f8fafc', colorMid: '#cbd5e1', colorBot: '#64748b' },
+      steel:    { k: 50,  diff: 0.28, name: 'ដែកថែប', colorTop: '#94a3b8', colorMid: '#475569', colorBot: '#1e293b' }
+    };
+
+    function changeThermoRod(val) {
+      thermoRodType = val;
+      drawThermoSimulation();
+    }
+
+    function updateThermoFlame(v) {
+      thermoFlameTemp = parseInt(v);
+      document.getElementById('thermo-flame-val').innerText = thermoFlameTemp + '°C';
+    }
+
+    function updateThermoSpeed(v) {
+      thermoSpeed = parseFloat(v);
+      document.getElementById('thermo-speed-val').innerText = thermoSpeed + 'x';
+    }
+
+    function drawGlassThermometer(ctx, x, y, tempVal, labelText) {
+      ctx.save();
+      const thermoW = 38;
+      const thermoH = 175;
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(x - thermoW/2, y, thermoW, thermoH, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('°F', x - 9, y + 14);
+      ctx.fillText('°C', x + 9, y + 14);
+
+      const capX = x;
+      const capTop = y + 20;
+      const capBottom = y + thermoH - 22;
+      const capHeight = capBottom - capTop;
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(capX - 2.5, capTop, 5, capHeight);
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(capX - 2.5, capTop, 5, capHeight);
+
+      ctx.fillStyle = '#334155';
+      ctx.font = '7px sans-serif';
+      for (let c = 0; c <= 100; c += 10) {
+        const markY = capBottom - (c / 100) * capHeight;
+        ctx.beginPath();
+        ctx.moveTo(capX + 2.5, markY);
+        ctx.lineTo(capX + (c % 20 === 0 ? 8 : 5), markY);
+        ctx.stroke();
+        if (c % 20 === 0) {
+          ctx.fillText(c, capX + 13, markY + 2.5);
+        }
+
+        const f = Math.round(c * 1.8 + 32);
+        ctx.beginPath();
+        ctx.moveTo(capX - 2.5, markY);
+        ctx.lineTo(capX - (c % 20 === 0 ? 8 : 5), markY);
+        ctx.stroke();
+        if (c % 20 === 0) {
+          ctx.fillText(f, capX - 13, markY + 2.5);
+        }
+      }
+
+      const bulbRadius = 8;
+      const bulbY = 222;
+      const clampedTemp = Math.max(0, Math.min(100, tempVal));
+      const liquidH = (clampedTemp / 100) * (capBottom - capTop);
+      const liquidTop = capBottom - liquidH;
+
+      // Capillary tube liquid down into bulb
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(capX - 2, liquidTop, 4, bulbY - liquidTop);
+
+      const bulbGrad = ctx.createRadialGradient(capX - 2, bulbY - 2, 1, capX, bulbY, bulbRadius);
+      bulbGrad.addColorStop(0, '#fca5a5');
+      bulbGrad.addColorStop(0.5, '#ef4444');
+      bulbGrad.addColorStop(1, '#991b1b');
+      ctx.fillStyle = bulbGrad;
+      ctx.beginPath();
+      ctx.arc(capX, bulbY, bulbRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#b91c1c';
+      ctx.stroke();
+
+      // Top Header Badge (Label + Live Temperature Readout)
+      const badgeW = 90;
+      const badgeH = 34;
+      const badgeX = x - badgeW / 2;
+      const badgeY = y - 40;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      ctx.beginPath();
+      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 6);
+      ctx.fill();
+      ctx.strokeStyle = tempVal > 50 ? '#ef4444' : (tempVal > 30 ? '#f59e0b' : '#38bdf8');
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Subtitle / Label
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '600 9px Kantumruy Pro, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(labelText, x, badgeY + 13);
+
+      // Temperature readout
+      ctx.fillStyle = tempVal > 60 ? '#f87171' : (tempVal > 35 ? '#fde047' : '#38bdf8');
+      ctx.font = 'bold 11px monospace';
+      ctx.fillText(tempVal.toFixed(1) + ' °C', x, badgeY + 28);
+
+      ctx.restore();
+    }
+
+    function drawBunsenBurner(ctx, x, y, isLit, time) {
+      ctx.save();
+
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(x - 90, y + 60);
+      ctx.quadraticCurveTo(x - 60, y + 70, x - 25, y + 45);
+      ctx.stroke();
+
+      const baseW = 70;
+      const baseH = 22;
+      const baseGrad = ctx.createLinearGradient(x - baseW/2, y + 35, x + baseW/2, y + 35);
+      baseGrad.addColorStop(0, '#1e293b');
+      baseGrad.addColorStop(0.3, '#64748b');
+      baseGrad.addColorStop(0.8, '#334155');
+      baseGrad.addColorStop(1, '#0f172a');
+
+      ctx.fillStyle = baseGrad;
+      ctx.beginPath();
+      ctx.roundRect(x - baseW/2, y + 35, baseW, baseH, [8, 8, 2, 2]);
+      ctx.fill();
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.roundRect(x + 10, y + 25, 14, 14, 3);
+      ctx.fill();
+      ctx.strokeStyle = '#38bdf8';
+      ctx.stroke();
+
+      const chimW = 16;
+      const chimH = 50;
+      const chimGrad = ctx.createLinearGradient(x - chimW/2, y, x + chimW/2, y);
+      chimGrad.addColorStop(0, '#475569');
+      chimGrad.addColorStop(0.3, '#ffffff');
+      chimGrad.addColorStop(0.7, '#94a3b8');
+      chimGrad.addColorStop(1, '#334155');
+
+      ctx.fillStyle = chimGrad;
+      ctx.fillRect(x - chimW/2, y - 10, chimW, chimH);
+      ctx.strokeStyle = '#64748b';
+      ctx.strokeRect(x - chimW/2, y - 10, chimW, chimH);
+
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(x - chimW/2 - 2, y - 13, chimW + 4, 4);
+
+      if (isLit) {
+        const flicker = Math.sin(time * 20) * 2 + Math.cos(time * 30) * 1.5;
+        const flameHeight = 48 + Math.sin(time * 15) * 4;
+
+        const radGlow = ctx.createRadialGradient(x, y - 35, 5, x, y - 35, 75);
+        radGlow.addColorStop(0, 'rgba(249, 115, 22, 0.4)');
+        radGlow.addColorStop(0.6, 'rgba(239, 68, 68, 0.1)');
+        radGlow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = radGlow;
+        ctx.beginPath();
+        ctx.arc(x, y - 35, 75, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath();
+        ctx.moveTo(x - 9, y - 13);
+        ctx.quadraticCurveTo(x - 14 + flicker, y - 35, x + flicker, y - 13 - flameHeight);
+        ctx.quadraticCurveTo(x + 14 + flicker, y - 35, x + 9, y - 13);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.moveTo(x - 6, y - 13);
+        ctx.quadraticCurveTo(x - 8 + flicker*0.8, y - 30, x + flicker*0.5, y - 13 - (flameHeight * 0.75));
+        ctx.quadraticCurveTo(x + 8 + flicker*0.8, y - 30, x + 6, y - 13);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.9)';
+        ctx.beginPath();
+        ctx.moveTo(x - 5, y - 13);
+        ctx.lineTo(x + flicker*0.3, y - 13 - 22);
+        ctx.lineTo(x + 5, y - 13);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Hover feedback & clickable hint
+      if (typeof thermoHoverBurner !== 'undefined' && thermoHoverBurner) {
+        ctx.strokeStyle = isLit ? 'rgba(239, 68, 68, 0.85)' : 'rgba(251, 191, 36, 0.9)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 3]);
+        ctx.strokeRect(x - 38, y - 55, 76, 115);
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = isLit ? '#f87171' : '#fde047';
+        ctx.font = 'bold 9px Kantumruy Pro, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(isLit ? '💨 ចុចដើម្បីពន្លត់' : '🔥 ចុចដើម្បីអុជ', x, y + 68);
+      }
+
+      ctx.restore();
+    }
+
+    function drawThermoSimulation() {
+      if (!tCtx) return;
+      tCtx.setTransform(UHD_SCALE, 0, 0, UHD_SCALE, 0, 0);
+      const w = LOGICAL_WIDTH;
+      const h = LOGICAL_HEIGHT_THERMO;
+      tCtx.clearRect(0, 0, w, h);
+
+      tCtx.fillStyle = '#090e1a';
+      tCtx.fillRect(0, 0, w, h);
+
+      const tableY = 370;
+      const woodGrad = tCtx.createLinearGradient(0, tableY, 0, h);
+      woodGrad.addColorStop(0, '#854d0e');
+      woodGrad.addColorStop(0.08, '#a16207');
+      woodGrad.addColorStop(0.3, '#713f12');
+      woodGrad.addColorStop(1, '#451a03');
+
+      tCtx.fillStyle = woodGrad;
+      tCtx.fillRect(0, tableY, w, h - tableY);
+
+      tCtx.strokeStyle = '#ca8a04';
+      tCtx.lineWidth = 3;
+      tCtx.beginPath();
+      tCtx.moveTo(0, tableY);
+      tCtx.lineTo(w, tableY);
+      tCtx.stroke();
+
+      tCtx.fillStyle = '#542608';
+      tCtx.fillRect(30, tableY + 30, w - 60, h - tableY - 30);
+      tCtx.strokeStyle = '#291003';
+      tCtx.strokeRect(30, tableY + 30, w - 60, h - tableY - 30);
+
+      const standX = 570;
+      const baseGrad = tCtx.createLinearGradient(standX - 60, tableY - 18, standX + 180, tableY - 18);
+      baseGrad.addColorStop(0, '#0f172a');
+      baseGrad.addColorStop(0.5, '#334155');
+      baseGrad.addColorStop(1, '#1e293b');
+      tCtx.fillStyle = baseGrad;
+      tCtx.fillRect(standX - 60, tableY - 18, 260, 18);
+      tCtx.strokeStyle = '#64748b';
+      tCtx.lineWidth = 1.5;
+      tCtx.strokeRect(standX - 60, tableY - 18, 260, 18);
+
+      const poleGrad = tCtx.createLinearGradient(standX - 8, 0, standX + 8, 0);
+      poleGrad.addColorStop(0, '#475569');
+      poleGrad.addColorStop(0.4, '#ffffff');
+      poleGrad.addColorStop(0.8, '#94a3b8');
+      poleGrad.addColorStop(1, '#334155');
+
+      tCtx.fillStyle = poleGrad;
+      tCtx.fillRect(standX - 8, 190, 16, tableY - 208);
+
+      tCtx.fillStyle = '#1e293b';
+      tCtx.beginPath();
+      tCtx.arc(standX, 240, 14, 0, Math.PI * 2);
+      tCtx.fill();
+      tCtx.strokeStyle = '#475569';
+      tCtx.stroke();
+
+      tCtx.fillStyle = '#0f172a';
+      tCtx.beginPath();
+      tCtx.arc(standX, 240, 6, 0, Math.PI * 2);
+      tCtx.fill();
+
+      const burnerX = 145;
+      const burnerY = tableY - 55;
+      drawBunsenBurner(tCtx, burnerX, burnerY, thermoRunning, thermoTime);
+
+      const rodStartX = 140;
+      const rodEndX = standX + 10;
+      const rodLength = rodEndX - rodStartX;
+      const rodY = 230;
+      const rodHeight = 18;
+
+      const props = rodThermalProps[thermoRodType];
+
+      const rodGrad = tCtx.createLinearGradient(0, rodY, 0, rodY + rodHeight);
+      rodGrad.addColorStop(0, props.colorTop);
+      rodGrad.addColorStop(0.3, '#ffffff');
+      rodGrad.addColorStop(0.7, props.colorMid);
+      rodGrad.addColorStop(1, props.colorBot);
+
+      tCtx.fillStyle = rodGrad;
+      tCtx.fillRect(rodStartX, rodY, rodLength, rodHeight);
+
+      if (T1 > 26) {
+        const heatGrad = tCtx.createLinearGradient(rodStartX, 0, rodEndX, 0);
+        const ratio1 = Math.min(1, (T1 - 25) / 150);
+        const ratio2 = Math.min(1, (T2 - 25) / 150);
+        const ratio3 = Math.min(1, (T3 - 25) / 150);
+
+        heatGrad.addColorStop(0, `rgba(239, 68, 68, ${ratio1 * 0.85})`);
+        heatGrad.addColorStop(0.3, `rgba(249, 115, 22, ${ratio2 * 0.7})`);
+        heatGrad.addColorStop(0.7, `rgba(234, 179, 8, ${ratio3 * 0.5})`);
+        heatGrad.addColorStop(1, 'rgba(56, 189, 248, 0.1)');
+
+        tCtx.fillStyle = heatGrad;
+        tCtx.fillRect(rodStartX, rodY, rodLength, rodHeight);
+      }
+
+      tCtx.strokeStyle = 'rgba(0,0,0,0.5)';
+      tCtx.lineWidth = 1;
+      tCtx.strokeRect(rodStartX, rodY, rodLength, rodHeight);
+
+      const arrowStartX = 190;
+      const arrowEndX = 480;
+      const arrowY = 280;
+      const arrowGrad = tCtx.createLinearGradient(arrowStartX, 0, arrowEndX, 0);
+      arrowGrad.addColorStop(0, '#ef4444');
+      arrowGrad.addColorStop(0.5, '#0284c7');
+      arrowGrad.addColorStop(1, '#06b6d4');
+
+      tCtx.fillStyle = arrowGrad;
+      tCtx.beginPath();
+      tCtx.moveTo(arrowStartX, arrowY - 8);
+      tCtx.lineTo(arrowEndX - 40, arrowY - 8);
+      tCtx.lineTo(arrowEndX - 40, arrowY - 22);
+      tCtx.lineTo(arrowEndX, arrowY);
+      tCtx.lineTo(arrowEndX - 40, arrowY + 22);
+      tCtx.lineTo(arrowEndX - 40, arrowY + 8);
+      tCtx.lineTo(arrowStartX, arrowY + 8);
+      tCtx.closePath();
+      tCtx.fill();
+
+      tCtx.fillStyle = '#ffffff';
+      tCtx.font = 'bold 11px Kantumruy Pro, sans-serif';
+      tCtx.textAlign = 'center';
+      tCtx.fillText('ទិសដៅចរន្តកម្តៅ (Heat Conduction Direction)', (arrowStartX + arrowEndX - 40) / 2, arrowY + 3.5);
+
+      const thermo1X = 160;
+      const thermo2X = 315;
+      const thermo3X = 470;
+      const thermoY = 46;
+
+      drawGlassThermometer(tCtx, thermo1X, thermoY, T1, 'ទែម៉ូម៉ែត្រ ១ (T₁)');
+      drawGlassThermometer(tCtx, thermo2X, thermoY, T2, 'ទែម៉ូម៉ែត្រ ២ (T₂)');
+      drawGlassThermometer(tCtx, thermo3X, thermoY, T3, 'ទែម៉ូម៉ែត្រ ៣ (T₃)');
+    }
+
+    let thermoHoverBurner = false;
+
+    function toggleThermoSim() {
+      if (!thermoRunning) {
+        if (thermoTime >= 60) {
+          resetThermoSim();
+        }
+        startThermoSim();
+      } else {
+        thermoRunning = false;
+        if (thermoAnimFrame) cancelAnimationFrame(thermoAnimFrame);
+        updateThermoButtonUI(false);
+        drawThermoSimulation();
+      }
+    }
+
+    function updateThermoButtonUI(isLit) {
+      // 1. Header main button
+      const mainBtn = document.getElementById('thermo-start-btn');
+      const mainIcon = document.getElementById('thermo-main-icon');
+      const mainText = document.getElementById('thermo-main-text');
+      if (mainBtn) {
+        if (isLit) {
+          if (mainIcon) mainIcon.innerText = '💨';
+          if (mainText) mainText.innerText = 'ពន្លត់ចង្កៀងប៊ុនសិន';
+          mainBtn.className = 'px-5 py-2.5 bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-red-500/30 transition flex items-center gap-2';
+        } else {
+          if (mainIcon) mainIcon.innerText = '🔥';
+          if (mainText) mainText.innerText = 'អុជចង្កៀងប៊ុនសិន';
+          mainBtn.className = 'px-5 py-2.5 bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-rose-500/30 transition flex items-center gap-2';
+        }
+      }
+
+      // 2. Viewport toolbar quick button
+      const quickBtn = document.getElementById('thermo-quick-ignite-btn');
+      const quickIcon = document.getElementById('thermo-quick-ignite-icon');
+      const quickText = document.getElementById('thermo-quick-ignite-text');
+      if (quickBtn) {
+        if (isLit) {
+          if (quickIcon) quickIcon.innerText = '💨';
+          if (quickText) quickText.innerText = 'ពន្លត់ចង្កៀង';
+          quickBtn.className = 'px-3 py-1.5 bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-red-600/30';
+        } else {
+          if (quickIcon) quickIcon.innerText = '🔥';
+          if (quickText) quickText.innerText = 'អុជចង្កៀង';
+          quickBtn.className = 'px-3 py-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-orange-500/30';
+        }
+      }
+
+      // 3. Floating button near Bunsen burner
+      const floatBtn = document.getElementById('thermo-burner-float-btn');
+      const floatIcon = document.getElementById('thermo-burner-float-icon');
+      const floatText = document.getElementById('thermo-burner-float-text');
+      if (floatBtn) {
+        if (isLit) {
+          if (floatIcon) floatIcon.innerText = '💨';
+          if (floatText) floatText.innerText = 'ពន្លត់ចង្កៀង';
+          floatBtn.className = 'px-4 py-2.5 bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 active:scale-95 text-white font-bold text-xs md:text-sm rounded-xl shadow-xl shadow-red-500/40 border border-rose-400/50 flex items-center gap-2 backdrop-blur-md transition-all group';
+        } else {
+          if (floatIcon) floatIcon.innerText = '🔥';
+          if (floatText) floatText.innerText = 'អុជចង្កៀងប៊ុនសិន';
+          floatBtn.className = 'px-4 py-2.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs md:text-sm rounded-xl shadow-2xl shadow-orange-500/50 border border-amber-300/60 flex items-center gap-2 backdrop-blur-md transition-all group';
+        }
+      }
+    }
+
+    function setupThermoInteractions() {
+      if (!thermoCanvas) return;
+
+      function getCoords(e) {
+        const rect = thermoCanvas.getBoundingClientRect();
+        const scaleX = LOGICAL_WIDTH / rect.width;
+        const scaleY = LOGICAL_HEIGHT_THERMO / rect.height;
+        return {
+          x: (e.clientX - rect.left) * scaleX,
+          y: (e.clientY - rect.top) * scaleY
+        };
+      }
+
+      thermoCanvas.addEventListener('click', function(e) {
+        const pt = getCoords(e);
+        const burnerX = 145;
+        const tableY = 370;
+        const burnerHit = (pt.x >= burnerX - 65 && pt.x <= burnerX + 65 && pt.y >= tableY - 145 && pt.y <= tableY + 30);
+        if (burnerHit) {
+          toggleThermoSim();
+        }
+      });
+
+      thermoCanvas.addEventListener('mousemove', function(e) {
+        const pt = getCoords(e);
+        const burnerX = 145;
+        const tableY = 370;
+        const burnerHit = (pt.x >= burnerX - 65 && pt.x <= burnerX + 65 && pt.y >= tableY - 145 && pt.y <= tableY + 30);
+        if (thermoHoverBurner !== burnerHit) {
+          thermoHoverBurner = burnerHit;
+          thermoCanvas.style.cursor = burnerHit ? 'pointer' : 'default';
+          drawThermoSimulation();
+        }
+      });
+
+      thermoCanvas.addEventListener('mouseleave', function() {
+        if (thermoHoverBurner) {
+          thermoHoverBurner = false;
+          thermoCanvas.style.cursor = 'default';
+          drawThermoSimulation();
+        }
+      });
+    }
+
+    function startThermoSim() {
+      if (thermoRunning) return;
+      thermoRunning = true;
+      updateThermoButtonUI(true);
+
+      let lastT = performance.now();
+      const props = rodThermalProps[thermoRodType];
+
+      function loop(now) {
+        if (!thermoRunning) return;
+        const dt = (now - lastT) / 1000;
+        lastT = now;
+        thermoTime += dt * thermoSpeed;
+        document.getElementById('thermo-timer').innerText = '⏱️ រយៈពេល៖ ' + thermoTime.toFixed(1) + 's';
+
+        const maxDelta = thermoFlameTemp - T_ambient;
+        const diff = props.diff;
+
+        const target1 = T_ambient + maxDelta * 0.82;
+        T1 += (target1 - T1) * (0.12 * diff) * dt * thermoSpeed;
+
+        if (thermoTime > (2.5 / diff)) {
+          const target2 = T_ambient + maxDelta * 0.48;
+          T2 += (target2 - T2) * (0.07 * diff) * dt * thermoSpeed;
+        }
+
+        if (thermoTime > (6.0 / diff)) {
+          const target3 = T_ambient + maxDelta * 0.22;
+          T3 += (target3 - T3) * (0.04 * diff) * dt * thermoSpeed;
+        }
+
+        document.getElementById('thermo-val-1').innerText = T1.toFixed(1) + '°C';
+        document.getElementById('thermo-val-2').innerText = T2.toFixed(1) + '°C';
+        document.getElementById('thermo-val-3').innerText = T3.toFixed(1) + '°C';
+
+        document.getElementById('thermo-prog-1').style.width = Math.min(100, (T1/100)*100) + '%';
+        document.getElementById('thermo-prog-2').style.width = Math.min(100, (T2/100)*100) + '%';
+        document.getElementById('thermo-prog-3').style.width = Math.min(100, (T3/100)*100) + '%';
+
+        drawThermoSimulation();
+
+        if (thermoTime < 60) {
+          thermoAnimFrame = requestAnimationFrame(loop);
+        } else {
+          thermoRunning = false;
+          updateThermoButtonUI(false);
+        }
+      }
+      thermoAnimFrame = requestAnimationFrame(loop);
+    }
+
+    function resetThermoSim() {
+      thermoRunning = false;
+      if (thermoAnimFrame) cancelAnimationFrame(thermoAnimFrame);
+      thermoTime = 0;
+      T1 = 25.0;
+      T2 = 25.0;
+      T3 = 25.0;
+
+      document.getElementById('thermo-timer').innerText = '⏱️ រយៈពេល៖ 0.0s';
+      updateThermoButtonUI(false);
+
+      document.getElementById('thermo-val-1').innerText = '25.0°C';
+      document.getElementById('thermo-val-2').innerText = '25.0°C';
+      document.getElementById('thermo-val-3').innerText = '25.0°C';
+
+      document.getElementById('thermo-prog-1').style.width = '25%';
+      document.getElementById('thermo-prog-2').style.width = '25%';
+      document.getElementById('thermo-prog-3').style.width = '25%';
+
+      drawThermoSimulation();
+    }
+
+    // ====================================================
+    // 2. INGENHOUSZ 5-ROD CONDUCTION CODE
+    // ====================================================
+    let condRunning = false;
+    let condTime = 0;
+    let condSpeed = 1.5;
+    let condTemp = 180;
+    let condDist = 25;
+    let condAnimFrame = null;
+
+    const realisticRods = [
+      { id: 'cu', name: '១. របារទង់ដែង (Copper)', k: 385, baseTop: '#ea580c', baseMid: '#f97316', baseBot: '#9a3412', heatRate: 0.95, pinDropped: false, dropTime: null, pinY: 0, pinVY: 0 },
+      { id: 'au', name: '២. របារមាសសុទ្ធ (Gold - Au)', k: 314, baseTop: '#f59e0b', baseMid: '#fde047', baseBot: '#b45309', heatRate: 0.80, pinDropped: false, dropTime: null, pinY: 0, pinVY: 0 },
+      { id: 'al', name: '៣. របារអាលុយមីញ៉ូម (Aluminum)', k: 205, baseTop: '#f8fafc', baseMid: '#cbd5e1', baseBot: '#64748b', heatRate: 0.62, pinDropped: false, dropTime: null, pinY: 0, pinVY: 0 },
+      { id: 'fe', name: '៤. របារដែកថែប (Steel)', k: 50, baseTop: '#94a3b8', baseMid: '#475569', baseBot: '#1e293b', heatRate: 0.28, pinDropped: false, dropTime: null, pinY: 0, pinVY: 0 },
+      { id: 'wood', name: '៥. របារឈើ (Wood)', k: 0.15, baseTop: '#d97706', baseMid: '#b45309', baseBot: '#78350f', heatRate: 0.02, pinDropped: false, dropTime: null, pinY: 0, pinVY: 0 }
+    ];
+
+    function updateCondTemp(v) {
+      condTemp = parseInt(v);
+      document.getElementById('cond-temp-val').innerText = condTemp + '°C';
+    }
+
+    function updateCondDist(v) {
+      condDist = parseInt(v);
+      document.getElementById('cond-dist-val').innerText = condDist + ' cm';
+      drawConductionRealistic();
+    }
+
+    function updateCondSpeed(v) {
+      condSpeed = parseFloat(v);
+      document.getElementById('cond-speed-val').innerText = condSpeed + 'x';
+    }
+
+    function drawSpiritLamp(ctx, x, y, isLit, time) {
+      ctx.save();
+      const gradBottle = ctx.createLinearGradient(x - 30, y, x + 30, y);
+      gradBottle.addColorStop(0, 'rgba(148, 163, 184, 0.4)');
+      gradBottle.addColorStop(0.3, 'rgba(255, 255, 255, 0.25)');
+      gradBottle.addColorStop(0.7, 'rgba(100, 116, 139, 0.3)');
+      gradBottle.addColorStop(1, 'rgba(51, 65, 85, 0.6)');
+
+      ctx.fillStyle = gradBottle;
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x - 12, y);
+      ctx.lineTo(x + 12, y);
+      ctx.lineTo(x + 14, y + 15);
+      ctx.lineTo(x + 32, y + 40);
+      ctx.lineTo(x + 32, y + 90);
+      ctx.quadraticCurveTo(x + 32, y + 100, x + 20, y + 100);
+      ctx.lineTo(x - 20, y + 100);
+      ctx.quadraticCurveTo(x - 32, y + 100, x - 32, y + 90);
+      ctx.lineTo(x - 32, y + 40);
+      ctx.lineTo(x - 14, y + 15);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(99, 102, 241, 0.35)';
+      ctx.beginPath();
+      ctx.moveTo(x - 30, y + 55);
+      ctx.lineTo(x + 30, y + 55);
+      ctx.lineTo(x + 30, y + 95);
+      ctx.lineTo(x - 30, y + 95);
+      ctx.closePath();
+      ctx.fill();
+
+      const gradCap = ctx.createLinearGradient(x - 14, y - 10, x + 14, y);
+      gradCap.addColorStop(0, '#fef08a');
+      gradCap.addColorStop(0.5, '#ca8a04');
+      gradCap.addColorStop(1, '#713f12');
+      ctx.fillStyle = gradCap;
+      ctx.fillRect(x - 14, y - 8, 28, 12);
+      ctx.strokeRect(x - 14, y - 8, 28, 12);
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(x - 4, y - 18, 8, 10);
+
+      if (isLit) {
+        const flicker = Math.sin(time * 18) * 3 + Math.cos(time * 27) * 2;
+        const flameHeight = 45 + Math.sin(time * 12) * 5;
+
+        const radGlow = ctx.createRadialGradient(x, y - 25, 5, x, y - 25, 80);
+        radGlow.addColorStop(0, 'rgba(249, 115, 22, 0.45)');
+        radGlow.addColorStop(0.5, 'rgba(234, 88, 12, 0.15)');
+        radGlow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = radGlow;
+        ctx.beginPath();
+        ctx.arc(x, y - 25, 80, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath();
+        ctx.moveTo(x - 10, y - 16);
+        ctx.quadraticCurveTo(x - 16 + flicker, y - 35, x + flicker, y - 16 - flameHeight);
+        ctx.quadraticCurveTo(x + 16 + flicker, y - 35, x + 10, y - 16);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.moveTo(x - 6, y - 16);
+        ctx.quadraticCurveTo(x - 10 + flicker*0.7, y - 30, x + flicker*0.5, y - 16 - (flameHeight * 0.7));
+        ctx.quadraticCurveTo(x + 10 + flicker*0.7, y - 30, x + 6, y - 16);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.85)';
+        ctx.beginPath();
+        ctx.ellipse(x, y - 16, 7, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawConductionRealistic() {
+      if (!condCtx) return;
+      condCtx.setTransform(UHD_SCALE, 0, 0, UHD_SCALE, 0, 0);
+      const w = LOGICAL_WIDTH;
+      const h = LOGICAL_HEIGHT_COND;
+      condCtx.clearRect(0, 0, w, h);
+
+      condCtx.fillStyle = '#090e1a';
+      condCtx.fillRect(0, 0, w, h);
+
+      const tableY = 460;
+      const tableGrad = condCtx.createLinearGradient(0, tableY, 0, h);
+      tableGrad.addColorStop(0, '#1e293b');
+      tableGrad.addColorStop(0.1, '#334155');
+      tableGrad.addColorStop(1, '#0f172a');
+      condCtx.fillStyle = tableGrad;
+      condCtx.fillRect(0, tableY, w, h - tableY);
+      condCtx.strokeStyle = '#475569';
+      condCtx.lineWidth = 2;
+      condCtx.strokeRect(0, tableY, w, 2);
+
+      const standX = 145;
+      condCtx.fillStyle = '#1e293b';
+      condCtx.fillRect(standX - 50, tableY - 14, 100, 14);
+      condCtx.strokeStyle = '#475569';
+      condCtx.strokeRect(standX - 50, tableY - 14, 100, 14);
+
+      const chromeGrad = condCtx.createLinearGradient(standX - 6, 0, standX + 6, 0);
+      chromeGrad.addColorStop(0, '#64748b');
+      chromeGrad.addColorStop(0.4, '#ffffff');
+      chromeGrad.addColorStop(1, '#334155');
+      condCtx.fillStyle = chromeGrad;
+      condCtx.fillRect(standX - 6, 30, 12, tableY - 44);
+
+      const hubX = standX + 25;
+      const hubY = 45;
+      const hubHeight = 310;
+
+      condCtx.fillStyle = '#334155';
+      condCtx.fillRect(standX - 12, hubY + 15, 24, 25);
+      condCtx.fillRect(standX - 12, hubY + 220, 24, 25);
+
+      const heatBlockGrad = condCtx.createLinearGradient(hubX - 18, 0, hubX + 18, 0);
+      heatBlockGrad.addColorStop(0, '#ca8a04');
+      heatBlockGrad.addColorStop(0.5, '#fef08a');
+      heatBlockGrad.addColorStop(1, '#854d0e');
+      condCtx.fillStyle = heatBlockGrad;
+      condCtx.fillRect(hubX - 15, hubY, 30, hubHeight);
+      condCtx.strokeStyle = '#eab308';
+      condCtx.lineWidth = 1.5;
+      condCtx.strokeRect(hubX - 15, hubY, 30, hubHeight);
+
+      const lampX = hubX;
+      const lampY = hubY + hubHeight + 10;
+      drawSpiritLamp(condCtx, lampX, lampY, condRunning, condTime);
+
+      const trayX = 320;
+      const trayW = 480;
+      const trayY = tableY - 10;
+      const trayGrad = condCtx.createLinearGradient(trayX, trayY, trayX, trayY + 10);
+      trayGrad.addColorStop(0, '#94a3b8');
+      trayGrad.addColorStop(0.5, '#e2e8f0');
+      trayGrad.addColorStop(1, '#475569');
+      condCtx.fillStyle = trayGrad;
+      condCtx.fillRect(trayX, trayY, trayW, 10);
+      condCtx.strokeStyle = '#cbd5e1';
+      condCtx.strokeRect(trayX, trayY, trayW, 10);
+
+      const rodStartX = hubX + 15;
+      const rodLength = 600;
+      const rodDiameter = 18;
+      const spacing = 58;
+      const pinDistancePx = (condDist / 35) * (rodLength - 80) + 40;
+
+      realisticRods.forEach((rod, i) => {
+        const y = hubY + 16 + i * spacing;
+
+        condCtx.fillStyle = rod.id === 'au' ? '#fde047' : '#f1f5f9';
+        condCtx.font = 'bold 11px Kantumruy Pro, sans-serif';
+        condCtx.textAlign = 'left';
+        condCtx.fillText(rod.name, rodStartX + 15, y - 6);
+
+        const rodGrad = condCtx.createLinearGradient(0, y, 0, rodY = y, rodGradEnd = y + rodDiameter);
+        const grad = condCtx.createLinearGradient(0, y, 0, y + rodDiameter);
+        grad.addColorStop(0, rod.baseTop);
+        grad.addColorStop(0.3, '#ffffff');
+        grad.addColorStop(0.6, rod.baseMid);
+        grad.addColorStop(1, rod.baseBot);
+
+        condCtx.fillStyle = grad;
+        condCtx.fillRect(rodStartX, y, rodLength, rodDiameter);
+
+        condCtx.fillStyle = rod.baseMid;
+        condCtx.beginPath();
+        condCtx.ellipse(rodStartX + rodLength, y + rodDiameter/2, 5, rodDiameter/2, 0, 0, Math.PI * 2);
+        condCtx.fill();
+
+        const penetration = Math.min(rodLength, condTime * 32 * rod.heatRate * (condTemp / 180));
+        if (penetration > 0) {
+          const glowGrad = condCtx.createLinearGradient(rodStartX, 0, rodStartX + penetration, 0);
+          glowGrad.addColorStop(0, 'rgba(239, 68, 68, 0.85)');
+          glowGrad.addColorStop(0.35, 'rgba(249, 115, 22, 0.7)');
+          glowGrad.addColorStop(0.7, 'rgba(234, 179, 8, 0.45)');
+          glowGrad.addColorStop(1, 'rgba(234, 179, 8, 0)');
+
+          condCtx.fillStyle = glowGrad;
+          condCtx.fillRect(rodStartX, y, penetration, rodDiameter);
+        }
+
+        condCtx.strokeStyle = 'rgba(0,0,0,0.4)';
+        condCtx.lineWidth = 1;
+        condCtx.strokeRect(rodStartX, y, rodLength, rodDiameter);
+
+        const pinX = rodStartX + pinDistancePx;
+        const waxY = y + rodDiameter;
+
+        if (penetration >= pinDistancePx && !rod.pinDropped) {
+          rod.pinDropped = true;
+          rod.dropTime = condTime.toFixed(1);
+          rod.pinY = waxY;
+          rod.pinVY = 0;
+          const statusEl = document.getElementById('pin-status-' + rod.id);
+          statusEl.innerText = 'បានធ្លាក់នៅ ' + rod.dropTime + 's';
+          statusEl.className = rod.id === 'au' ? 'text-yellow-400 font-mono font-bold' : 'text-emerald-400 font-mono font-bold';
+        }
+
+        if (!rod.pinDropped) {
+          condCtx.fillStyle = '#fef08a';
+          condCtx.beginPath();
+          condCtx.ellipse(pinX, waxY + 2, 6, 4, 0, 0, Math.PI * 2);
+          condCtx.fill();
+          condCtx.strokeStyle = '#ca8a04';
+          condCtx.stroke();
+
+          condCtx.strokeStyle = '#e2e8f0';
+          condCtx.lineWidth = 2;
+          condCtx.beginPath();
+          condCtx.moveTo(pinX, waxY + 2);
+          condCtx.lineTo(pinX, waxY + 25);
+          condCtx.stroke();
+
+          const pinHeadGrad = condCtx.createRadialGradient(pinX - 2, waxY + 25, 1, pinX, waxY + 27, 5);
+          if (rod.id === 'au') {
+            pinHeadGrad.addColorStop(0, '#93c5fd');
+            pinHeadGrad.addColorStop(0.5, '#3b82f6');
+            pinHeadGrad.addColorStop(1, '#1e3a8a');
+          } else {
+            pinHeadGrad.addColorStop(0, '#fca5a5');
+            pinHeadGrad.addColorStop(0.5, '#ef4444');
+            pinHeadGrad.addColorStop(1, '#991b1b');
+          }
+          condCtx.fillStyle = pinHeadGrad;
+          condCtx.beginPath();
+          condCtx.arc(pinX, waxY + 27, 5, 0, Math.PI * 2);
+          condCtx.fill();
+        } else {
+          const targetY = trayY - 6;
+          if (rod.pinY < targetY) {
+            rod.pinVY += 12;
+            rod.pinY += rod.pinVY * 0.08;
+            if (rod.pinY >= targetY) rod.pinY = targetY;
+          }
+
+          condCtx.fillStyle = '#fef08a';
+          condCtx.fillRect(pinX - 4, waxY, 8, 2);
+
+          condCtx.save();
+          condCtx.translate(pinX + (i * 10), rod.pinY);
+          condCtx.rotate(Math.PI / 2.2);
+
+          condCtx.strokeStyle = '#94a3b8';
+          condCtx.lineWidth = 2;
+          condCtx.beginPath();
+          condCtx.moveTo(0, -10);
+          condCtx.lineTo(0, 10);
+          condCtx.stroke();
+
+          condCtx.fillStyle = rod.id === 'au' ? '#3b82f6' : '#ef4444';
+          condCtx.beginPath();
+          condCtx.arc(0, 12, 4.5, 0, Math.PI * 2);
+          condCtx.fill();
+          condCtx.restore();
+        }
+
+        const pct = Math.min(100, (penetration / rodLength) * 100);
+        const pb = document.getElementById('bar-progress-' + rod.id);
+        if (pb) pb.style.width = pct + '%';
+      });
+
+      condCtx.fillStyle = '#64748b';
+      condCtx.font = '10px sans-serif';
+      condCtx.textAlign = 'center';
+      for (let cm = 10; cm <= 35; cm += 5) {
+        const xPos = rodStartX + (cm / 35) * (rodLength - 80) + 40;
+        condCtx.fillText(cm + 'cm', xPos, tableY + 22);
+      }
+    }
+
+    let condHoverLamp = false;
+
+    function toggleConductionSim() {
+      if (!condRunning) {
+        if (condTime >= 45) {
+          resetConductionSim();
+        }
+        startConductionSim();
+      } else {
+        condRunning = false;
+        if (condAnimFrame) cancelAnimationFrame(condAnimFrame);
+        updateConductionButtonUI(false);
+        drawConductionRealistic();
+      }
+    }
+
+    function updateConductionButtonUI(isLit) {
+      // 1. Header main button
+      const mainBtn = document.getElementById('cond-start-btn');
+      const mainIcon = document.getElementById('cond-main-icon');
+      const mainText = document.getElementById('cond-main-text');
+      if (mainBtn) {
+        if (isLit) {
+          if (mainIcon) mainIcon.innerText = '💨';
+          if (mainText) mainText.innerText = 'ពន្លត់ចង្កៀងអាល់កុល';
+          mainBtn.className = 'px-5 py-2.5 bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-red-500/30 transition flex items-center gap-2';
+        } else {
+          if (mainIcon) mainIcon.innerText = '🔥';
+          if (mainText) mainText.innerText = 'អុជចង្កៀងអាល់កុល';
+          mainBtn.className = 'px-5 py-2.5 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/30 transition flex items-center gap-2';
+        }
+      }
+
+      // 2. Viewport toolbar quick button
+      const quickBtn = document.getElementById('cond-quick-ignite-btn');
+      const quickIcon = document.getElementById('cond-quick-ignite-icon');
+      const quickText = document.getElementById('cond-quick-ignite-text');
+      if (quickBtn) {
+        if (isLit) {
+          if (quickIcon) quickIcon.innerText = '💨';
+          if (quickText) quickText.innerText = 'ពន្លត់ចង្កៀង';
+          quickBtn.className = 'px-3 py-1.5 bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-red-600/30';
+        } else {
+          if (quickIcon) quickIcon.innerText = '🔥';
+          if (quickText) quickText.innerText = 'អុជចង្កៀង';
+          quickBtn.className = 'px-3 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-amber-500/30';
+        }
+      }
+
+      // 3. Floating button near spirit lamp
+      const floatBtn = document.getElementById('cond-burner-float-btn');
+      const floatIcon = document.getElementById('cond-burner-float-icon');
+      const floatText = document.getElementById('cond-burner-float-text');
+      if (floatBtn) {
+        if (isLit) {
+          if (floatIcon) floatIcon.innerText = '💨';
+          if (floatText) floatText.innerText = 'ពន្លត់ចង្កៀង';
+          floatBtn.className = 'px-4 py-2.5 bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 active:scale-95 text-white font-bold text-xs md:text-sm rounded-xl shadow-xl shadow-red-500/40 border border-rose-400/50 flex items-center gap-2 backdrop-blur-md transition-all group';
+        } else {
+          if (floatIcon) floatIcon.innerText = '🔥';
+          if (floatText) floatText.innerText = 'អុជចង្កៀងអាល់កុល';
+          floatBtn.className = 'px-4 py-2.5 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-bold text-xs md:text-sm rounded-xl shadow-2xl shadow-amber-500/50 border border-amber-300/60 flex items-center gap-2 backdrop-blur-md transition-all group';
+        }
+      }
+    }
+
+    function setupCondInteractions() {
+      if (!condCanvas) return;
+
+      function getCoords(e) {
+        const rect = condCanvas.getBoundingClientRect();
+        const scaleX = LOGICAL_WIDTH / rect.width;
+        const scaleY = LOGICAL_HEIGHT_COND / rect.height;
+        return {
+          x: (e.clientX - rect.left) * scaleX,
+          y: (e.clientY - rect.top) * scaleY
+        };
+      }
+
+      condCanvas.addEventListener('click', function(e) {
+        const pt = getCoords(e);
+        const lampX = 150;
+        const lampY = 445 - 90;
+        const lampHit = (pt.x >= lampX - 55 && pt.x <= lampX + 55 && pt.y >= lampY - 70 && pt.y <= lampY + 115);
+        if (lampHit) {
+          toggleConductionSim();
+        }
+      });
+
+      condCanvas.addEventListener('mousemove', function(e) {
+        const pt = getCoords(e);
+        const lampX = 150;
+        const lampY = 445 - 90;
+        const lampHit = (pt.x >= lampX - 55 && pt.x <= lampX + 55 && pt.y >= lampY - 70 && pt.y <= lampY + 115);
+        if (condHoverLamp !== lampHit) {
+          condHoverLamp = lampHit;
+          condCanvas.style.cursor = lampHit ? 'pointer' : 'default';
+          drawConductionRealistic();
+        }
+      });
+
+      condCanvas.addEventListener('mouseleave', function() {
+        if (condHoverLamp) {
+          condHoverLamp = false;
+          condCanvas.style.cursor = 'default';
+          drawConductionRealistic();
+        }
+      });
+    }
+
+    function startConductionSim() {
+      if (condRunning) return;
+      condRunning = true;
+      updateConductionButtonUI(true);
+
+      let lastT = performance.now();
+      function loop(now) {
+        if (!condRunning) return;
+        const dt = (now - lastT) / 1000;
+        lastT = now;
+        condTime += dt * condSpeed;
+        document.getElementById('cond-timer').innerText = '⏱️ រយៈពេល៖ ' + condTime.toFixed(1) + 's';
+
+        drawConductionRealistic();
+
+        if (condTime < 45) {
+          condAnimFrame = requestAnimationFrame(loop);
+        } else {
+          condRunning = false;
+          updateConductionButtonUI(false);
+        }
+      }
+      condAnimFrame = requestAnimationFrame(loop);
+    }
+
+    function resetConductionSim() {
+      condRunning = false;
+      if (condAnimFrame) cancelAnimationFrame(condAnimFrame);
+      condTime = 0;
+      document.getElementById('cond-timer').innerText = '⏱️ រយៈពេល៖ 0.0s';
+      updateConductionButtonUI(false);
+
+      realisticRods.forEach(r => {
+        r.pinDropped = false;
+        r.dropTime = null;
+        r.pinY = 0;
+        r.pinVY = 0;
+        const st = document.getElementById('pin-status-' + r.id);
+        if (st) {
+          st.innerText = r.id === 'wood' ? 'អ៊ីសូឡង់' : 'កំពុងរង់ចាំ...';
+          st.className = r.id === 'wood' ? 'text-amber-500 font-mono font-bold' : 'text-slate-400 font-mono font-bold';
+        }
+        const pb = document.getElementById('bar-progress-' + r.id);
+        if (pb) pb.style.width = '0%';
+      });
+      drawConductionRealistic();
+    }
+
+    // ====================================================
+    // 3. THERMAL CONVECTION (CAN & TURBINE) SIMULATION
+    // ====================================================
+    let convFlameLit = false;      // Starts unlit/idle until user clicks to start
+    let convFlameTemp = 200;       // °C (60 to 350) target when burning
+    let convTurbineHeight = 3;     // 1 to 5 (1 = close, 5 = far)
+    let convAirIntakeOpen = true;  // blocks elevated at bottom
+    let convTurbineStyle = 'pinwheel'; // 'pinwheel' | 'spiral'
+    let convShowStreamlines = true;
+    let convShowParticles = true;
+
+    let convCurrentTemp = 25.0;    // Starts at room temperature 25°C
+    let convDraftSpeed = 0.0;      // m/s (0 initially)
+    let convRPM = 0;               // 0 RPM initially
+    let convAngle = 0;             // radians
+    let convAngularVelocity = 0.0; // rad/s (0 initially)
+    let convAnimLoopId = null;
+    let convLastTime = performance.now();
+
+    // Lighter ignition animation state
+    let lighterAnim = {
+      active: false,
+      progress: 0,
+      duration: 1.0
+    };
+
+    let convHoverCandle = false;
+    let convHoverLighter = false;
+
+    // Particle pool for convection airflow
+    const convParticles = [];
+    const MAX_CONV_PARTICLES = 50;
+
+    function resetConvParticle(p, canCenter, canTopY, canBottomY) {
+      const mode = Math.random();
+      if (mode < 0.35 && convAirIntakeOpen) {
+        // Bottom inflow phase: starts outside near bottom gap
+        const side = Math.random() < 0.5 ? -1 : 1;
+        p.x = canCenter + side * (90 + Math.random() * 60);
+        p.y = canBottomY + 10 + Math.random() * 15;
+        p.vx = -side * (30 + Math.random() * 40);
+        p.vy = -Math.random() * 10;
+        p.temp = 25;
+      } else {
+        // Inside can chimney phase: starts low inside can
+        p.x = canCenter + (Math.random() - 0.5) * 80;
+        p.y = canBottomY - 10 - Math.random() * 120;
+        p.vx = (Math.random() - 0.5) * 12;
+        p.vy = -(60 + Math.random() * 120);
+        p.temp = convCurrentTemp * (0.6 + Math.random() * 0.4);
+      }
+      p.size = 2.0 + Math.random() * 2.5;
+      p.alpha = 0.2 + Math.random() * 0.6;
+      p.life = 0;
+      p.maxLife = 2.0 + Math.random() * 1.5; // seconds
+      return p;
+    }
+
+    // Initialize particles
+    for (let i = 0; i < MAX_CONV_PARTICLES; i++) {
+      convParticles.push(resetConvParticle({}, 425, 230, 400));
+    }
+
+    function setConvFlame(turnOn) {
+      if (turnOn) {
+        if (!convFlameLit) {
+          if (lighterAnim && lighterAnim.active) return;
+          lighterAnim.active = true;
+          lighterAnim.progress = 0;
+        }
+      } else {
+        convFlameLit = false;
+        lighterAnim.active = false;
+        lighterAnim.progress = 0;
+        updateIgniteButtonUI();
+      }
+    }
+
+    function toggleConvFlame() {
+      setConvFlame(!convFlameLit);
+    }
+
+    function updateIgniteButtonUI() {
+      // 1. Dual Buttons in Viewport (Top Left: បើក / បិទ)
+      const btnOpen = document.getElementById('conv-btn-open');
+      const btnClose = document.getElementById('conv-btn-close');
+      if (btnOpen && btnClose) {
+        if (convFlameLit) {
+          btnOpen.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95 bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/40 border border-amber-300/60 ring-2 ring-amber-400/50';
+          btnClose.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95 bg-slate-800/80 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-700/80';
+        } else {
+          btnOpen.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95 bg-slate-800/80 hover:bg-amber-950/60 text-slate-400 hover:text-amber-300 border border-slate-700/80 animate-pulse';
+          btnClose.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95 bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-lg shadow-red-500/40 border border-rose-400/60 ring-2 ring-rose-500/50';
+        }
+      }
+
+      // 2. Dual Buttons in Header Bar (Top Bar)
+      const hdrOn = document.getElementById('conv-hdr-btn-on');
+      const hdrOff = document.getElementById('conv-hdr-btn-off');
+      if (hdrOn && hdrOff) {
+        if (convFlameLit) {
+          hdrOn.className = 'px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md active:scale-95';
+          hdrOff.className = 'px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-slate-800 text-slate-400 hover:text-rose-300 active:scale-95';
+        } else {
+          hdrOn.className = 'px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-slate-800 text-slate-400 hover:text-amber-300 active:scale-95 animate-pulse';
+          hdrOff.className = 'px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-md active:scale-95';
+        }
+      }
+
+      // 3. Quick Toolbar Button in Viewport (Top Right)
+      const quickBtn = document.getElementById('conv-quick-ignite-btn');
+      const quickIcon = document.getElementById('conv-quick-ignite-icon');
+      const quickText = document.getElementById('conv-quick-ignite-text');
+      if (quickBtn) {
+        if (convFlameLit) {
+          if (quickIcon) quickIcon.innerText = '💨';
+          if (quickText) quickText.innerText = 'បិទភ្លើង';
+          quickBtn.className = 'px-3 py-1.5 bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-red-600/30';
+        } else {
+          if (quickIcon) quickIcon.innerText = '🔥';
+          if (quickText) quickText.innerText = 'បើកភ្លើង';
+          quickBtn.className = 'px-3 py-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 active:scale-95 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow-md shadow-orange-500/30';
+        }
+      }
+
+      // 4. Floating Action Button near Table Base (Bottom Right)
+      const tblBtn = document.getElementById('conv-table-toggle-btn');
+      const tblIcon = document.getElementById('conv-table-toggle-icon');
+      const tblText = document.getElementById('conv-table-toggle-text');
+      if (tblIcon && tblText) {
+        tblIcon.innerText = convFlameLit ? '💨' : '🔥';
+        tblText.innerText = convFlameLit ? 'បិទភ្លើងទៀន (OFF)' : 'បើកភ្លើងទៀន (ON)';
+      }
+      if (tblBtn) {
+        if (convFlameLit) {
+          tblBtn.className = 'px-3.5 py-2 bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-bold text-xs rounded-xl shadow-xl border border-slate-700/80 flex items-center gap-2 backdrop-blur-md transition-all active:scale-95';
+        } else {
+          tblBtn.className = 'px-3.5 py-2 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-bold text-xs rounded-xl shadow-xl border border-amber-400/40 flex items-center gap-2 backdrop-blur-md transition-all active:scale-95 animate-pulse';
+        }
+      }
+    }
+
+    function toggleAirIntake() {
+      convAirIntakeOpen = !convAirIntakeOpen;
+      const statusEl = document.getElementById('conv-intake-status');
+      const btn = document.getElementById('conv-intake-btn');
+
+      if (convAirIntakeOpen) {
+        statusEl.innerText = '● បើកចំហ (មានជើងកល់)';
+        statusEl.className = 'text-[11px] text-emerald-400 font-bold';
+        btn.innerText = 'បិទរន្ធបាត';
+        btn.className = 'px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition';
+      } else {
+        statusEl.innerText = '● បិទជិត (កកស្ទះខ្យល់)';
+        statusEl.className = 'text-[11px] text-rose-400 font-bold';
+        btn.innerText = 'បើករន្ធបាត';
+        btn.className = 'px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-xs transition';
+      }
+    }
+
+    function updateConvTemp(val) {
+      convFlameTemp = parseFloat(val);
+      const valEl = document.getElementById('conv-temp-val');
+      if (valEl) valEl.innerText = Math.round(convFlameTemp) + '°C';
+    }
+
+    function updateConvHeight(val) {
+      convTurbineHeight = parseInt(val);
+      const valEl = document.getElementById('conv-height-val');
+      if (valEl) {
+        const labels = {
+          1: 'ជិតបំផុត (1.5 cm)',
+          2: 'ជិត (2.8 cm)',
+          3: 'មធ្យម (4.0 cm)',
+          4: 'ឆ្ងាយ (6.0 cm)',
+          5: 'ឆ្ងាយបំផុត (8.5 cm)'
+        };
+        valEl.innerText = labels[convTurbineHeight] || 'មធ្យម';
+      }
+    }
+
+    function setTurbineStyle(style) {
+      convTurbineStyle = style;
+      const btnPin = document.getElementById('btn-style-pinwheel');
+      const btnSpiral = document.getElementById('btn-style-spiral');
+      if (style === 'pinwheel') {
+        btnPin.className = 'px-2.5 py-1.5 bg-blue-600 text-white font-bold rounded-lg border border-blue-400 text-center transition';
+        btnSpiral.className = 'px-2.5 py-1.5 bg-slate-700 text-slate-300 font-medium rounded-lg border border-slate-600 text-center transition hover:bg-slate-600';
+      } else {
+        btnSpiral.className = 'px-2.5 py-1.5 bg-blue-600 text-white font-bold rounded-lg border border-blue-400 text-center transition';
+        btnPin.className = 'px-2.5 py-1.5 bg-slate-700 text-slate-300 font-medium rounded-lg border border-slate-600 text-center transition hover:bg-slate-600';
+      }
+    }
+
+    function resetConvSim() {
+      convFlameLit = false;
+      convFlameTemp = 200;
+      convTurbineHeight = 3;
+      convAirIntakeOpen = true;
+      convCurrentTemp = 25.0;
+      convAngle = 0;
+      convAngularVelocity = 0.0;
+      convDraftSpeed = 0.0;
+      convRPM = 0;
+
+      const sliderTemp = document.getElementById('conv-temp-slider');
+      if (sliderTemp) sliderTemp.value = 200;
+      const sliderHeight = document.getElementById('conv-height-slider');
+      if (sliderHeight) sliderHeight.value = 3;
+
+      updateConvTemp(200);
+      updateConvHeight(3);
+
+      const statusEl = document.getElementById('conv-intake-status');
+      const btnIntake = document.getElementById('conv-intake-btn');
+      if (statusEl) {
+        statusEl.innerText = '● បើកចំហ (មានជើងកល់)';
+        statusEl.className = 'text-[11px] text-emerald-400 font-bold';
+      }
+      if (btnIntake) {
+        btnIntake.innerText = 'បិទរន្ធបាត';
+        btnIntake.className = 'px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition';
+      }
+
+      updateIgniteButtonUI();
+    }
+
+    // ====================================================
+    // CONVECTION CANVAS RENDERER & SIMULATION LOOP
+    // ====================================================
+    function drawConvectionRealistic() {
+      if (!convCtx) return;
+      convCtx.setTransform(UHD_SCALE, 0, 0, UHD_SCALE, 0, 0);
+      const w = LOGICAL_WIDTH;
+      const h = LOGICAL_HEIGHT_CONV;
+      convCtx.clearRect(0, 0, w, h);
+
+      // 1. Deep Lab Background
+      const bgGrad = convCtx.createLinearGradient(0, 0, 0, h);
+      bgGrad.addColorStop(0, '#090e1a');
+      bgGrad.addColorStop(0.6, '#0f172a');
+      bgGrad.addColorStop(1, '#020617');
+      convCtx.fillStyle = bgGrad;
+      convCtx.fillRect(0, 0, w, h);
+
+      // 2. Table Surface & Green Lab Cutting Mat (From Photo)
+      const tableY = 420;
+      const woodGrad = convCtx.createLinearGradient(0, tableY, 0, h);
+      woodGrad.addColorStop(0, '#78350f');
+      woodGrad.addColorStop(0.08, '#92400e');
+      woodGrad.addColorStop(0.3, '#451a03');
+      woodGrad.addColorStop(1, '#1c0a00');
+      convCtx.fillStyle = woodGrad;
+      convCtx.fillRect(0, tableY, w, h - tableY);
+
+      convCtx.strokeStyle = '#b45309';
+      convCtx.lineWidth = 2.5;
+      convCtx.beginPath();
+      convCtx.moveTo(0, tableY);
+      convCtx.lineTo(w, tableY);
+      convCtx.stroke();
+
+      // Green Silicone Lab Mat (from photo)
+      const matX = 110;
+      const matW = 630;
+      const matY = tableY - 6;
+      const matH = 75;
+
+      const matGrad = convCtx.createLinearGradient(0, matY, 0, matY + matH);
+      matGrad.addColorStop(0, '#064e3b');
+      matGrad.addColorStop(0.5, '#042f2e');
+      matGrad.addColorStop(1, '#022c22');
+      convCtx.fillStyle = matGrad;
+      convCtx.beginPath();
+      convCtx.roundRect(matX, matY, matW, matH, 6);
+      convCtx.fill();
+      convCtx.strokeStyle = '#059669';
+      convCtx.lineWidth = 1.5;
+      convCtx.stroke();
+
+      // Mat grid lines
+      convCtx.save();
+      convCtx.strokeStyle = 'rgba(52, 211, 153, 0.12)';
+      convCtx.lineWidth = 0.8;
+      for (let gx = matX + 25; gx < matX + matW; gx += 25) {
+        convCtx.beginPath();
+        convCtx.moveTo(gx, matY);
+        convCtx.lineTo(gx, matY + matH);
+        convCtx.stroke();
+      }
+      for (let gy = matY + 15; gy < matY + matH; gy += 15) {
+        convCtx.beginPath();
+        convCtx.moveTo(matX, gy);
+        convCtx.lineTo(matX + matW, gy);
+        convCtx.stroke();
+      }
+      convCtx.restore();
+
+      // 3. Props on the Table (From User's Photo)
+      // A. Silver Heat-Resistant Protective Glove (Left Side)
+      drawSilverGlove(convCtx, 220, matY + 12);
+
+      // 4. Tin Can Chimney Constants
+      const canCenterX = 425;
+      const canW = 120;
+      const canRadius = canW / 2;
+      const canH = 175;
+      const canBottomY = convAirIntakeOpen ? (tableY - 26) : (tableY - 5);
+      const canTopY = canBottomY - canH;
+
+      // B. Red Electronic Lighter (Table or Moving toward Candle)
+      let lighterX = 635;
+      let lighterY = matY + 22;
+      let lighterAngle = 0.2;
+      let lighterSparking = false;
+      let lighterFlip = false;
+
+      if (lighterAnim.active) {
+        const p = lighterAnim.progress;
+        const targetX = canCenterX + 42;
+        const targetY = 370; // exact candle wick height
+        lighterFlip = true;
+
+        if (p < 0.38) {
+          const t = p / 0.38;
+          lighterX = 635 + (targetX - 635) * t;
+          lighterY = (matY + 22) + (targetY - (matY + 22)) * t;
+          lighterAngle = 0.2 - 0.42 * t;
+        } else if (p < 0.65) {
+          lighterX = targetX;
+          lighterY = targetY;
+          lighterAngle = -0.22;
+          lighterSparking = true;
+        } else {
+          const t = (p - 0.65) / 0.35;
+          lighterX = targetX + (635 - targetX) * t;
+          lighterY = targetY + ((matY + 22) - targetY) * t;
+          lighterAngle = -0.22 + 0.42 * t;
+        }
+      }
+      drawRedLighter(convCtx, lighterX, lighterY, lighterAngle, lighterSparking, lighterFlip);
+
+      // 5. Elevation Pedestals (Blocks under can)
+      if (convAirIntakeOpen) {
+        drawElevationBlock(convCtx, canCenterX - canRadius + 4, canBottomY + 2, 28, 22);
+        drawElevationBlock(convCtx, canCenterX + canRadius - 32, canBottomY + 2, 28, 22);
+
+        if (convShowStreamlines && convFlameLit && convDraftSpeed > 0.3) {
+          drawAirIntakeArrow(convCtx, canCenterX - canRadius - 40, canBottomY + 12, canCenterX - 10, canBottomY + 12, true);
+          drawAirIntakeArrow(convCtx, canCenterX + canRadius + 40, canBottomY + 12, canCenterX + 10, canBottomY + 12, false);
+        }
+      } else {
+        drawElevationBlock(convCtx, canCenterX - canRadius - 45, tableY - 14, 28, 14);
+        drawElevationBlock(convCtx, canCenterX + canRadius + 18, tableY - 14, 28, 14);
+      }
+
+      // 6. Draw Tin Can Chimney WITH Arched Front Doorway
+      drawTinCanChimney(convCtx, canCenterX, canTopY, canW, canH, convFlameLit, convCurrentTemp, canBottomY);
+
+      // 7. Draw The Real Candle Inside the Arched Doorway (Clearly Visible & Lightable!)
+      const candleBaseY = matY + 4; // Firmly resting on the green cutting mat
+      drawConvCandle(convCtx, canCenterX, candleBaseY, convFlameLit, convCurrentTemp);
+
+      // 8. Convection Streamlines / Hot Air Updraft
+      const turbineOffsetMap = { 1: 30, 2: 48, 3: 68, 4: 92, 5: 120 };
+      const turbineDistance = turbineOffsetMap[convTurbineHeight] || 68;
+      const turbineY = canTopY - turbineDistance;
+
+      if (convShowStreamlines && convFlameLit && convDraftSpeed > 0.4) {
+        drawUpdraftStreamlines(convCtx, canCenterX, canTopY, turbineY, canRadius, convDraftSpeed);
+      }
+
+      // 9. Convection Particles Simulation
+      if (convShowParticles) {
+        drawConvParticles(convCtx, canCenterX, canTopY, canBottomY);
+      }
+
+      // 10. The Wooden Stick & Steel Needle Pivot holding the Turbine
+      drawPivotHolder(convCtx, canCenterX, turbineY, 45);
+
+      // 11. The Paper Turbine / Spinner (Rotating 4K Vector)
+      if (convTurbineStyle === 'pinwheel') {
+        drawPaperPinwheel(convCtx, canCenterX, turbineY, convAngle, convRPM, convCurrentTemp);
+      } else {
+        drawPaperSpiral(convCtx, canCenterX, turbineY, convAngle, convRPM);
+      }
+
+      // 12. Floating Science Info Annotations
+      drawConvLabels(convCtx, canCenterX, canTopY, canBottomY, turbineY);
+    }
+
+    // Helper: Draw Silver Heat Glove
+    function drawSilverGlove(ctx, x, y) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(-0.12);
+
+      // Glove shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.beginPath();
+      ctx.ellipse(35, 25, 45, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Main glove mitten body
+      const gloveGrad = ctx.createLinearGradient(0, 0, 70, 40);
+      gloveGrad.addColorStop(0, '#e2e8f0');
+      gloveGrad.addColorStop(0.3, '#f8fafc');
+      gloveGrad.addColorStop(0.6, '#94a3b8');
+      gloveGrad.addColorStop(1, '#475569');
+
+      ctx.fillStyle = gloveGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, 10);
+      ctx.quadraticCurveTo(20, -5, 60, 5);
+      ctx.quadraticCurveTo(85, 12, 80, 32);
+      ctx.quadraticCurveTo(65, 42, 40, 38);
+      ctx.quadraticCurveTo(15, 36, 0, 30);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Thumb
+      ctx.fillStyle = '#cbd5e1';
+      ctx.beginPath();
+      ctx.ellipse(45, 12, 14, 9, -0.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#94a3b8';
+      ctx.stroke();
+
+      // Yellow leather cuff / patch from photo
+      ctx.fillStyle = '#eab308';
+      ctx.beginPath();
+      ctx.roundRect(-4, 8, 12, 24, 3);
+      ctx.fill();
+      ctx.strokeStyle = '#ca8a04';
+      ctx.stroke();
+
+      // Label
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '500 8.5px Kantumruy Pro, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('ស្រោមដៃការពារកម្តៅ', 40, 52);
+
+      ctx.restore();
+    }
+
+    // Helper: Draw Red Disposable Lighter
+    function drawRedLighter(ctx, x, y, angle, isSparking, flipX) {
+      ctx.save();
+      ctx.translate(x, y);
+      if (flipX) ctx.scale(-1, 1);
+      ctx.rotate(angle !== undefined ? angle : 0.2);
+
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.beginPath();
+      ctx.roundRect(-15, 8, 48, 14, 4);
+      ctx.fill();
+
+      // Red Plastic Body
+      const bodyGrad = ctx.createLinearGradient(0, -6, 0, 14);
+      bodyGrad.addColorStop(0, '#f87171');
+      bodyGrad.addColorStop(0.3, '#ef4444');
+      bodyGrad.addColorStop(0.8, '#b91c1c');
+      bodyGrad.addColorStop(1, '#7f1d1d');
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.roundRect(-14, -6, 42, 16, 4);
+      ctx.fill();
+      ctx.strokeStyle = '#dc2626';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Fluid reflection line
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.fillRect(-10, -3, 34, 2);
+
+      // Metal wind hood (silver)
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath();
+      ctx.roundRect(28, -6, 12, 16, 2);
+      ctx.fill();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.stroke();
+
+      // Black spark wheel & button
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(32, -9, 6, 4);
+
+      // Spark & Lighter Flame when igniting
+      if (isSparking) {
+        ctx.fillStyle = '#fde047';
+        ctx.beginPath();
+        ctx.moveTo(38, -6);
+        ctx.quadraticCurveTo(42, -18, 45, -22);
+        ctx.quadraticCurveTo(48, -18, 45, -6);
+        ctx.fill();
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(42, -7, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sparks flying
+        ctx.fillStyle = '#fef08a';
+        for (let s = 0; s < 4; s++) {
+          const sx = 40 + (Math.random() - 0.5) * 16;
+          const sy = -14 - Math.random() * 14;
+          ctx.beginPath();
+          ctx.arc(sx, sy, 1.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Label & Hover highlight when stationary on table
+      if (!isSparking && (!lighterAnim || !lighterAnim.active)) {
+        if (convHoverLighter) {
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.22)';
+          ctx.beginPath();
+          ctx.roundRect(-22, -14, 66, 30, 6);
+          ctx.fill();
+          ctx.strokeStyle = '#f87171';
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          ctx.fillStyle = '#fde047';
+          ctx.font = 'bold 9px Kantumruy Pro, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('⚡ ចុចដែកកេះដើម្បីអុជ', 10, 25);
+        } else {
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '500 8.5px Kantumruy Pro, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('ដែកកេះ (Lighter)', 10, 24);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    // Helper: Draw Ceramic Elevation Block
+    function drawElevationBlock(ctx, x, y, w, h) {
+      ctx.save();
+      // Block 3D body
+      const blockGrad = ctx.createLinearGradient(x, y, x + w, y + h);
+      blockGrad.addColorStop(0, '#ffffff');
+      blockGrad.addColorStop(0.5, '#f1f5f9');
+      blockGrad.addColorStop(1, '#cbd5e1');
+      ctx.fillStyle = blockGrad;
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, 3);
+      ctx.fill();
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Top bevel highlight
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fillRect(x + 2, y + 1, w - 4, 2);
+
+      ctx.restore();
+    }
+
+    // Helper: Draw Cold Air Inflow Arrow
+    function drawAirIntakeArrow(ctx, x1, y1, x2, y2, fromLeft) {
+      ctx.save();
+      const arrowGrad = ctx.createLinearGradient(x1, 0, x2, 0);
+      arrowGrad.addColorStop(0, 'rgba(56, 189, 248, 0.15)');
+      arrowGrad.addColorStop(1, '#38bdf8');
+
+      ctx.strokeStyle = arrowGrad;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      // Arrowhead
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      if (fromLeft) {
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - 8, y2 - 4);
+        ctx.lineTo(x2 - 8, y2 + 4);
+      } else {
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 + 8, y2 - 4);
+        ctx.lineTo(x2 + 8, y2 + 4);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 9px Kantumruy Pro, sans-serif';
+      ctx.textAlign = fromLeft ? 'right' : 'left';
+      ctx.fillText(fromLeft ? 'ខ្យល់ត្រជាក់ចូល ➔' : '⬅ ខ្យល់ត្រជាក់ចូល', fromLeft ? (x1 - 6) : (x1 + 6), y1 + 3);
+
+      ctx.restore();
+    }
+
+    // Helper: Draw Realistic Candle (Visible inside arched door)
+    function drawConvCandle(ctx, cx, by, isLit, tempVal) {
+      ctx.save();
+
+      const candleW = 26;
+      const candleH = 42;
+      const cLeft = cx - candleW / 2;
+      const cTop = by - candleH;
+
+      // 1. Metal base holder / Tealight tin plate at base
+      const plateW = candleW * 1.35;
+      const plateH = 5;
+      const plateGrad = ctx.createLinearGradient(cx - plateW/2, 0, cx + plateW/2, 0);
+      plateGrad.addColorStop(0, '#64748b');
+      plateGrad.addColorStop(0.3, '#f1f5f9');
+      plateGrad.addColorStop(0.7, '#cbd5e1');
+      plateGrad.addColorStop(1, '#475569');
+      ctx.fillStyle = plateGrad;
+      ctx.beginPath();
+      ctx.roundRect(cx - plateW/2, by - plateH, plateW, plateH, 2);
+      ctx.fill();
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      // 2. Realistic melted yellow wax puddle on green mat (matching user's photo!)
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.ellipse(cx + 15, by + 1, 10, 4, 0.25, 0, Math.PI * 2);
+      ctx.ellipse(cx + 25, by + 2, 5, 2.5, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx - 14, by + 2, 8, 3.5, -0.15, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Soft wax shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.beginPath();
+      ctx.ellipse(cx, by + 2, plateW * 0.6, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 3. White Wax Candle Pillar Body
+      const waxGrad = ctx.createLinearGradient(cLeft, 0, cLeft + candleW, 0);
+      waxGrad.addColorStop(0, '#e2e8f0');
+      waxGrad.addColorStop(0.25, '#ffffff');
+      waxGrad.addColorStop(0.65, '#f8fafc');
+      waxGrad.addColorStop(0.9, '#e2e8f0');
+      waxGrad.addColorStop(1, '#cbd5e1');
+
+      ctx.fillStyle = waxGrad;
+      ctx.beginPath();
+      ctx.roundRect(cLeft, cTop, candleW, candleH - plateH, [3, 3, 1, 1]);
+      ctx.fill();
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      // Top liquid molten wax pool
+      const cupGrad = ctx.createRadialGradient(cx, cTop + 1, 1, cx, cTop + 1, candleW/2);
+      cupGrad.addColorStop(0, isLit ? '#fef08a' : '#f8fafc');
+      cupGrad.addColorStop(0.7, '#e2e8f0');
+      cupGrad.addColorStop(1, '#94a3b8');
+      ctx.fillStyle = cupGrad;
+      ctx.beginPath();
+      ctx.ellipse(cx, cTop + 1, candleW/2 - 1, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Realistic wax drips running down the sides
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(cLeft + 4, cTop + 2);
+      ctx.quadraticCurveTo(cLeft + 3, cTop + 16, cLeft + 5, cTop + 20);
+      ctx.quadraticCurveTo(cLeft + 8, cTop + 16, cLeft + 7, cTop + 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(cLeft + 18, cTop + 2);
+      ctx.quadraticCurveTo(cLeft + 17, cTop + 12, cLeft + 19, cTop + 15);
+      ctx.quadraticCurveTo(cLeft + 21, cTop + 12, cLeft + 20, cTop + 2);
+      ctx.fill();
+
+      // 4. Cotton Wick
+      const wickH = 8;
+      const wickTopY = cTop - wickH;
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2.0;
+      ctx.beginPath();
+      ctx.moveTo(cx, cTop + 1);
+      ctx.quadraticCurveTo(cx + 1, cTop - wickH * 0.5, cx, wickTopY);
+      ctx.stroke();
+
+      // 5. Candle Flame (when lit) OR Ember/Smoke (when unlit)
+      if (isLit) {
+        // Oxygen factor: if air intake closed, flame shrinks and sputters
+        const oxygenScale = convAirIntakeOpen ? 1.0 : 0.45;
+        const flicker = (Math.sin(performance.now() * 0.02) + Math.cos(performance.now() * 0.038)) * (oxygenScale * 1.8);
+        const flameH = (24 + (tempVal / 350) * 12 + flicker) * oxygenScale;
+        const flameW = (13 + (tempVal / 350) * 4) * oxygenScale;
+
+        // Radiant glow spilling onto floor and inside can
+        const glowR = flameH * 2.8;
+        const glowGrad = ctx.createRadialGradient(cx, wickTopY - flameH * 0.3, 3, cx, wickTopY - flameH * 0.3, glowR);
+        glowGrad.addColorStop(0, 'rgba(254, 240, 138, 0.75)');
+        glowGrad.addColorStop(0.25, 'rgba(249, 115, 22, 0.45)');
+        glowGrad.addColorStop(0.65, 'rgba(239, 68, 68, 0.15)');
+        glowGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+        ctx.fillStyle = glowGrad;
+        ctx.beginPath();
+        ctx.ellipse(cx, wickTopY - flameH * 0.2, glowR * 1.2, glowR, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Outer Orange/Amber Flame Teardrop
+        ctx.beginPath();
+        ctx.moveTo(cx - flameW/2, wickTopY);
+        ctx.quadraticCurveTo(cx - flameW/2, wickTopY - flameH * 0.65, cx, wickTopY - flameH);
+        ctx.quadraticCurveTo(cx + flameW/2, wickTopY - flameH * 0.65, cx + flameW/2, wickTopY);
+        ctx.closePath();
+
+        const flameGrad = ctx.createLinearGradient(0, wickTopY, 0, wickTopY - flameH);
+        flameGrad.addColorStop(0, '#f97316');
+        flameGrad.addColorStop(0.4, '#fde047');
+        flameGrad.addColorStop(0.85, '#ffffff');
+        ctx.fillStyle = flameGrad;
+        ctx.fill();
+
+        // Inner Incandescent Blue/White Combustion Core
+        ctx.beginPath();
+        ctx.moveTo(cx - flameW * 0.28, wickTopY);
+        ctx.quadraticCurveTo(cx - flameW * 0.28, wickTopY - flameH * 0.45, cx, wickTopY - flameH * 0.7);
+        ctx.quadraticCurveTo(cx + flameW * 0.28, wickTopY - flameH * 0.45, cx + flameW * 0.28, wickTopY);
+        ctx.closePath();
+
+        const coreGrad = ctx.createLinearGradient(0, wickTopY, 0, wickTopY - flameH * 0.7);
+        coreGrad.addColorStop(0, '#38bdf8');
+        coreGrad.addColorStop(0.35, '#ffffff');
+        ctx.fillStyle = coreGrad;
+        ctx.fill();
+
+        // Micro spark particles rising from flame
+        ctx.fillStyle = '#fef08a';
+        for (let sp = 0; sp < 2; sp++) {
+          const spx = cx + (Math.sin(performance.now() * 0.01 + sp) * 6);
+          const spy = wickTopY - flameH - 4 - ((performance.now() * 0.05 + sp * 10) % 20);
+          ctx.beginPath();
+          ctx.arc(spx, spy, 1.0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        // Red glowing ember at wick tip
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(cx, wickTopY, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Realistic curling smoke wisps
+        ctx.strokeStyle = 'rgba(203, 213, 225, 0.45)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(cx, wickTopY);
+        const smokeTime = performance.now() * 0.003;
+        ctx.bezierCurveTo(
+          cx + Math.sin(smokeTime) * 8, wickTopY - 14,
+          cx - Math.cos(smokeTime) * 12, wickTopY - 32,
+          cx + Math.sin(smokeTime * 1.5) * 16, wickTopY - 55
+        );
+        ctx.stroke();
+      }
+
+      // 6. Interactive Clickable Indicator / Badge over Candle
+      const isHovered = convHoverCandle;
+      const badgeY = by + 16;
+      ctx.textAlign = 'center';
+
+      if (isLit) {
+        // Subtle badge when lit
+        ctx.fillStyle = isHovered ? '#ef4444' : '#f59e0b';
+        ctx.font = 'bold 9px Kantumruy Pro, sans-serif';
+        ctx.fillText(isHovered ? '💨 ចុចបិទភ្លើង (OFF)' : 'ទៀនកំពុងឆេះ 🔥', cx, badgeY);
+      } else {
+        // Attention-grabbing bright neon pill when unlit ("ចុចបើកភ្លើង")
+        const pillW = 110;
+        const pillH = 22;
+        const pillX = cx - pillW / 2;
+        const pillY = badgeY - 13;
+
+        // Pulsing glow
+        const pulse = Math.sin(performance.now() * 0.008) * 0.2 + 0.8;
+        ctx.fillStyle = `rgba(245, 158, 11, ${pulse * 0.3})`;
+        ctx.beginPath();
+        ctx.roundRect(pillX - 3, pillY - 3, pillW + 6, pillH + 6, 8);
+        ctx.fill();
+
+        // Pill background
+        ctx.fillStyle = isHovered ? '#ea580c' : '#d97706';
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, 6);
+        ctx.fill();
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9.5px Kantumruy Pro, sans-serif';
+        ctx.fillText('⚡ ចុចបើកភ្លើង (ON)', cx, badgeY);
+      }
+
+      // Hover dash box around candle if hovered
+      if (isHovered) {
+        ctx.strokeStyle = isLit ? 'rgba(239, 68, 68, 0.8)' : 'rgba(251, 191, 36, 0.9)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 3]);
+        ctx.strokeRect(cLeft - 5, cTop - 18, candleW + 10, candleH + 22);
+        ctx.setLineDash([]);
+      }
+
+      ctx.restore();
+    }
+
+    // Helper: Draw Tin Can Chimney (2 cans, corrugated ridges, and ARCHED FRONT DOORWAY)
+    function drawTinCanChimney(ctx, cx, topY, w, h, isLit, tempVal, bottomY) {
+      ctx.save();
+      const r = w / 2;
+      const left = cx - r;
+      const right = cx + r;
+
+      // Arched doorway cutout dimensions at front bottom
+      const doorW = 56;
+      const doorH = 75;
+      const doorX = cx - doorW / 2;
+      const doorY = bottomY - doorH;
+      const doorArchY = doorY + doorW / 2;
+      const doorR = doorW / 2;
+      const doorBottom = bottomY + 10;
+
+      // 1. Back Interior Wall (visible through door cutout & top rim)
+      const backGrad = ctx.createLinearGradient(left, 0, right, 0);
+      if (isLit) {
+        backGrad.addColorStop(0, '#1c0a00');
+        backGrad.addColorStop(0.25, '#7c2d12');
+        backGrad.addColorStop(0.5, '#ea580c');
+        backGrad.addColorStop(0.75, '#7c2d12');
+        backGrad.addColorStop(1, '#1c0a00');
+      } else {
+        backGrad.addColorStop(0, '#0f172a');
+        backGrad.addColorStop(0.5, '#1e293b');
+        backGrad.addColorStop(1, '#0f172a');
+      }
+      ctx.fillStyle = backGrad;
+      ctx.fillRect(left, topY, w, h);
+
+      // Back interior corrugated groove lines
+      ctx.strokeStyle = isLit ? 'rgba(251, 146, 60, 0.22)' : 'rgba(15, 23, 42, 0.45)';
+      ctx.lineWidth = 0.8;
+      for (let y = topY + 12; y < bottomY - 6; y += 8) {
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(right, y);
+        ctx.stroke();
+      }
+
+      // 2. Front Exterior Can Body WITH Arched Door Cutout (Evenodd Path)
+      const canGrad = ctx.createLinearGradient(left, 0, right, 0);
+      canGrad.addColorStop(0, '#334155');
+      canGrad.addColorStop(0.18, '#64748b');
+      canGrad.addColorStop(0.42, '#f1f5f9');
+      canGrad.addColorStop(0.55, '#e2e8f0');
+      canGrad.addColorStop(0.82, '#64748b');
+      canGrad.addColorStop(1, '#1e293b');
+
+      ctx.save();
+      ctx.beginPath();
+      // Outer rect (clockwise)
+      ctx.rect(left, topY, w, h);
+      // Arched door opening (counter-clockwise for evenodd hole)
+      ctx.moveTo(doorX, doorBottom);
+      ctx.lineTo(doorX + doorW, doorBottom);
+      ctx.lineTo(doorX + doorW, doorArchY);
+      ctx.arc(cx, doorArchY, doorR, 0, Math.PI, true);
+      ctx.lineTo(doorX, doorBottom);
+      ctx.closePath();
+
+      ctx.fillStyle = canGrad;
+      ctx.fill('evenodd');
+
+      // Clip corrugated grooves so they don't draw inside the door
+      ctx.clip('evenodd');
+
+      // Exterior Corrugated Tin Grooves / Rib Lines
+      ctx.lineWidth = 1.0;
+      for (let y = topY + 12; y < bottomY - 4; y += 8) {
+        ctx.strokeStyle = 'rgba(15, 23, 42, 0.55)';
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(right, y);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.beginPath();
+        ctx.moveTo(left, y + 1.5);
+        ctx.lineTo(right, y + 1.5);
+        ctx.stroke();
+      }
+
+      // Center Joint Tape (where two cans are joined)
+      const jointY = topY + h * 0.52;
+      const tapeH = 14;
+      const tapeGrad = ctx.createLinearGradient(left, 0, right, 0);
+      tapeGrad.addColorStop(0, '#94a3b8');
+      tapeGrad.addColorStop(0.4, '#ffffff');
+      tapeGrad.addColorStop(0.7, '#cbd5e1');
+      tapeGrad.addColorStop(1, '#64748b');
+      ctx.fillStyle = tapeGrad;
+      ctx.fillRect(left - 1, jointY - tapeH/2, w + 2, tapeH);
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.8)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(left - 1, jointY - tapeH/2, w + 2, tapeH);
+
+      // Warm glow wash on exterior
+      if (isLit) {
+        const heatGlow = ctx.createRadialGradient(cx, topY + h * 0.65, 10, cx, topY + h * 0.65, w * 0.8);
+        heatGlow.addColorStop(0, 'rgba(249, 115, 22, 0.35)');
+        heatGlow.addColorStop(0.6, 'rgba(234, 88, 12, 0.15)');
+        heatGlow.addColorStop(1, 'rgba(234, 88, 12, 0)');
+        ctx.fillStyle = heatGlow;
+        ctx.fillRect(left, topY, w, h);
+      }
+
+      ctx.restore(); // remove clip
+
+      // 3. Exterior Can Border (open at the bottom door)
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(doorX, bottomY);
+      ctx.lineTo(left, bottomY);
+      ctx.lineTo(left, topY);
+      ctx.lineTo(right, topY);
+      ctx.lineTo(right, bottomY);
+      ctx.lineTo(doorX + doorW, bottomY);
+      ctx.stroke();
+
+      // 4. Arched Door Metallic Rolled Bevel Rim
+      ctx.beginPath();
+      ctx.moveTo(doorX, bottomY);
+      ctx.lineTo(doorX, doorArchY);
+      ctx.arc(cx, doorArchY, doorR, Math.PI, 0, false);
+      ctx.lineTo(doorX + doorW, bottomY);
+      ctx.strokeStyle = '#f8fafc';
+      ctx.lineWidth = 2.4;
+      ctx.stroke();
+
+      // Shadow on interior edge of arch
+      ctx.beginPath();
+      ctx.moveTo(doorX + 1.2, bottomY);
+      ctx.lineTo(doorX + 1.2, doorArchY);
+      ctx.arc(cx, doorArchY, doorR - 1.2, Math.PI, 0, false);
+      ctx.lineTo(doorX + doorW - 1.2, bottomY);
+      ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // 5. Top Open Rim (3D Perspective Ellipse)
+      const rimH = 18;
+      const innerGlow = ctx.createRadialGradient(cx, topY, 4, cx, topY, r);
+      if (isLit) {
+        innerGlow.addColorStop(0, '#fffbeb');
+        innerGlow.addColorStop(0.25, '#fde047');
+        innerGlow.addColorStop(0.6, '#ea580c');
+        innerGlow.addColorStop(1, '#9a3412');
+      } else {
+        innerGlow.addColorStop(0, '#1e293b');
+        innerGlow.addColorStop(0.7, '#0f172a');
+        innerGlow.addColorStop(1, '#020617');
+      }
+
+      ctx.fillStyle = innerGlow;
+      ctx.beginPath();
+      ctx.ellipse(cx, topY, r - 3, rimH / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Outer metallic rim ring
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.ellipse(cx, topY, r, rimH / 2 + 1, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Top glowing warmth halo
+      if (isLit) {
+        const topHalo = ctx.createRadialGradient(cx, topY, 5, cx, topY, r * 1.4);
+        topHalo.addColorStop(0, 'rgba(253, 224, 71, 0.45)');
+        topHalo.addColorStop(0.5, 'rgba(249, 115, 22, 0.25)');
+        topHalo.addColorStop(1, 'rgba(249, 115, 22, 0)');
+        ctx.fillStyle = topHalo;
+        ctx.beginPath();
+        ctx.ellipse(cx, topY, r * 1.5, rimH, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    // Helper: Draw Pivot Holder (Wooden Stick & Steel Needle)
+    function drawPivotHolder(ctx, cx, py, stickTopY) {
+      ctx.save();
+      // Wooden Stick (Chopstick from photo)
+      const stickW = 7;
+      const stickGrad = ctx.createLinearGradient(cx - stickW/2, 0, cx + stickW/2, 0);
+      stickGrad.addColorStop(0, '#b45309');
+      stickGrad.addColorStop(0.3, '#fcd34d');
+      stickGrad.addColorStop(0.7, '#d97706');
+      stickGrad.addColorStop(1, '#78350f');
+
+      ctx.fillStyle = stickGrad;
+      ctx.beginPath();
+      ctx.roundRect(cx - stickW/2, stickTopY, stickW, py - stickTopY - 14, 2);
+      ctx.fill();
+      ctx.strokeStyle = '#92400e';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      // Steel Needle Pin extending to pivot point
+      const needleY = py - 14;
+      ctx.strokeStyle = '#f8fafc';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, needleY);
+      ctx.lineTo(cx, py);
+      ctx.stroke();
+
+      // Needle tip pivot dot
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(cx, py, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Stick Clamp / Hand label at top
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '500 8.5px Kantumruy Pro, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('ឈើទ្រ & ម្ជុលដេរ (Pivot Pin)', cx, stickTopY - 6);
+
+      ctx.restore();
+    }
+
+    // Helper: Draw 4-Blade Paper Pinwheel Turbine (As seen in photo!)
+    function drawPaperPinwheel(ctx, cx, cy, angle, rpm, tempVal) {
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      const bladeR = 52;
+
+      // Dynamic motion blur if spinning fast
+      if (rpm > 90) {
+        ctx.save();
+        ctx.rotate(angle - 0.08);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+        for (let i = 0; i < 4; i++) {
+          const a = (i * Math.PI) / 2;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(a) * (bladeR + 4), Math.sin(a) * (bladeR + 4));
+          ctx.lineTo(Math.cos(a + 0.35) * (bladeR * 0.7), Math.sin(a + 0.35) * (bladeR * 0.7));
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      ctx.rotate(angle);
+
+      // Draw 4 Origami Folded Blades with 3D paper shading
+      for (let i = 0; i < 4; i++) {
+        const bAngle = (i * Math.PI) / 2;
+        ctx.save();
+        ctx.rotate(bAngle);
+
+        // Blade side A (Lit by warm heat glow from underneath)
+        const litGrad = ctx.createLinearGradient(0, 0, bladeR, bladeR * 0.5);
+        litGrad.addColorStop(0, '#ffffff');
+        litGrad.addColorStop(0.5, '#fffbeb');
+        litGrad.addColorStop(1, '#fde68a');
+
+        ctx.fillStyle = litGrad;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(bladeR, 0);
+        ctx.lineTo(bladeR * 0.7, bladeR * 0.4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        // Blade side B (Shadow fold crease)
+        const shadowGrad = ctx.createLinearGradient(0, 0, bladeR * 0.7, bladeR * 0.4);
+        shadowGrad.addColorStop(0, '#f1f5f9');
+        shadowGrad.addColorStop(0.7, '#cbd5e1');
+        shadowGrad.addColorStop(1, '#94a3b8');
+
+        ctx.fillStyle = shadowGrad;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(bladeR * 0.7, bladeR * 0.4);
+        ctx.lineTo(bladeR * 0.25, bladeR * 0.55);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#94a3b8';
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // Center Pin Cap / Bearing
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // Helper: Draw Archimedes Paper Spiral Turbine
+    function drawPaperSpiral(ctx, cx, cy, angle, rpm) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+
+      const loops = 3.2;
+      const maxR = 56;
+      ctx.lineWidth = 4.5;
+
+      const spiralGrad = ctx.createLinearGradient(-maxR, -maxR, maxR, maxR);
+      spiralGrad.addColorStop(0, '#ffffff');
+      spiralGrad.addColorStop(0.4, '#fed7aa');
+      spiralGrad.addColorStop(0.8, '#f97316');
+      spiralGrad.addColorStop(1, '#e2e8f0');
+
+      ctx.strokeStyle = spiralGrad;
+      ctx.beginPath();
+      for (let t = 0; t < loops * 2 * Math.PI; t += 0.08) {
+        const r = (t / (loops * 2 * Math.PI)) * maxR;
+        const x = Math.cos(t) * r;
+        const y = Math.sin(t) * r;
+        if (t === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Center cap
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // Helper: Draw Updraft Streamlines (Heat Air Flow)
+    function drawUpdraftStreamlines(ctx, cx, topY, turbineY, r, speed) {
+      ctx.save();
+      const numLines = 5;
+      const t = performance.now() * 0.003;
+
+      for (let i = 0; i < numLines; i++) {
+        const offsetRatio = (i - (numLines - 1) / 2) / ((numLines - 1) / 2);
+        const x = cx + offsetRatio * (r * 0.65);
+        const animOffset = (t * 40 * (speed / 2.5) + i * 25) % (topY - turbineY + 40);
+        const sy = topY - animOffset;
+
+        if (sy < topY && sy > turbineY - 30) {
+          const streamGrad = ctx.createLinearGradient(0, sy + 18, 0, sy);
+          streamGrad.addColorStop(0, 'rgba(249, 115, 22, 0)');
+          streamGrad.addColorStop(0.5, 'rgba(253, 224, 71, 0.45)');
+          streamGrad.addColorStop(1, 'rgba(249, 115, 22, 0.85)');
+
+          ctx.strokeStyle = streamGrad;
+          ctx.lineWidth = 2.0;
+          ctx.beginPath();
+          ctx.moveTo(x + Math.sin(sy * 0.05 + i) * 3, sy + 18);
+          ctx.lineTo(x, sy);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
+    // Helper: Convection Particles Flow
+    function drawConvParticles(ctx, cx, topY, bottomY) {
+      if (!convFlameLit && convDraftSpeed < 0.1) return;
+      ctx.save();
+      const dt = 0.016;
+
+      convParticles.forEach(p => {
+        p.life += dt;
+        if (p.life >= p.maxLife) {
+          resetConvParticle(p, cx, topY, bottomY);
+        }
+
+        // Physics motion based on updraft speed
+        const speedScale = convFlameLit ? (convDraftSpeed / 2.5) : 0.15;
+        p.x += p.vx * dt * speedScale;
+        p.y += p.vy * dt * speedScale;
+
+        // Particle color based on temperature
+        if (p.y > bottomY) {
+          // Cold air inflow below can
+          ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha * 0.7})`;
+        } else if (p.y > topY) {
+          // Inside heating chimney
+          ctx.fillStyle = `rgba(251, 146, 60, ${p.alpha * 0.85})`;
+        } else {
+          // Hot updraft hitting turbine
+          ctx.fillStyle = `rgba(253, 224, 71, ${p.alpha})`;
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+
+    // Helper: Labels and Annotations
+    function drawConvLabels(ctx, cx, topY, bottomY, turbineY) {
+      ctx.save();
+
+      // Top Turbine RPM Badge
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.beginPath();
+      ctx.roundRect(cx - 85, turbineY - 42, 170, 22, 6);
+      ctx.fill();
+      ctx.strokeStyle = convRPM > 100 ? '#f59e0b' : (convRPM > 0 ? '#38bdf8' : '#64748b');
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = convRPM > 100 ? '#fde047' : (convRPM > 0 ? '#38bdf8' : '#94a3b8');
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      if (!convFlameLit && convRPM === 0) {
+        ctx.fillText('🛑 0 RPM | 0.0 m/s (រង់ចាំការបើក)', cx, turbineY - 27);
+      } else {
+        ctx.fillText(`🌀 ${convRPM} RPM | ${(convDraftSpeed).toFixed(1)} m/s`, cx, turbineY - 27);
+      }
+
+      // Chimney Stack Arrow & Label
+      if (convFlameLit && convDraftSpeed > 0.3) {
+        ctx.fillStyle = '#ea580c';
+        ctx.font = 'bold 9.5px Kantumruy Pro, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('▲ ចរន្តវិលវល់ខ្យល់ក្តៅ (Updraft)', cx + 75, topY + 25);
+      } else {
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold 9.5px Kantumruy Pro, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('— គ្មានចរន្តកម្តៅ (No Updraft)', cx + 75, topY + 25);
+      }
+
+      if (convAirIntakeOpen) {
+        ctx.fillStyle = convFlameLit ? '#38bdf8' : '#64748b';
+        ctx.fillText(convFlameLit ? '● រន្ធខ្យល់បាតចំហ (Air Intake Gap)' : '● រន្ធបាតចំហ (រង់ចាំកម្តៅ)', cx + 75, bottomY + 12);
+      } else {
+        ctx.fillStyle = '#f87171';
+        ctx.fillText('✖ បិទរន្ធខ្យល់បាត (Blocked)', cx + 75, bottomY + 12);
+      }
+
+      ctx.restore();
+    }
+
+    // ====================================================
+    // CONVECTION ANIMATION LOOP (Physics integration)
+    // ====================================================
+    function startConvLoop() {
+      if (convAnimLoopId) return;
+
+      function loop(now) {
+        const dt = Math.min(0.1, (now - convLastTime) / 1000);
+        convLastTime = now;
+
+        // 0. Lighter ignition animation progression
+        if (lighterAnim.active) {
+          lighterAnim.progress += dt * 1.4;
+          if (lighterAnim.progress >= 0.5 && !convFlameLit) {
+            convFlameLit = true;
+            updateIgniteButtonUI();
+          }
+          if (lighterAnim.progress >= 1.0) {
+            lighterAnim.active = false;
+            lighterAnim.progress = 0;
+          }
+        }
+
+        // 1. Temperature dynamics
+        if (convFlameLit && convAirIntakeOpen) {
+          convCurrentTemp += (convFlameTemp - convCurrentTemp) * 1.5 * dt;
+        } else if (convFlameLit && !convAirIntakeOpen) {
+          // Flame starves of oxygen, drops to ~70°C
+          convCurrentTemp += (70 - convCurrentTemp) * 0.8 * dt;
+        } else {
+          // Flame extinguished, cools to room temp 25°C
+          convCurrentTemp += (25.0 - convCurrentTemp) * 0.5 * dt;
+        }
+
+        // 2. Draft velocity: v = k * sqrt(Delta T)
+        const deltaT = Math.max(0, convCurrentTemp - 25.0);
+        let baseDraft = 0.22 * Math.sqrt(deltaT);
+
+        // Air intake blockage cuts flow to near-zero
+        if (!convAirIntakeOpen) {
+          baseDraft *= 0.12;
+        }
+
+        // Height factor: closer to chimney = stronger air blast
+        const heightFactors = { 1: 1.35, 2: 1.15, 3: 1.0, 4: 0.82, 5: 0.65 };
+        const hFactor = heightFactors[convTurbineHeight] || 1.0;
+        convDraftSpeed = baseDraft * hFactor;
+
+        // 3. Turbine angular velocity: Torque driving vs Friction damping
+        const targetOmega = convDraftSpeed * 10.5; // rad/s
+        convAngularVelocity += (targetOmega - convAngularVelocity) * 2.2 * dt;
+        if (convAngularVelocity < 0.2) convAngularVelocity = 0;
+
+        convAngle += convAngularVelocity * dt;
+        convRPM = Math.round((convAngularVelocity * 60) / (2 * Math.PI));
+
+        // 4. Update DOM gauges
+        const velVal = document.getElementById('conv-vel-val');
+        if (velVal) velVal.innerText = convDraftSpeed.toFixed(1) + ' m/s';
+
+        const velBar = document.getElementById('conv-vel-bar');
+        if (velBar) velBar.style.width = Math.min(100, Math.round((convDraftSpeed / 4.0) * 100)) + '%';
+
+        const rpmVal = document.getElementById('conv-rpm-val');
+        if (rpmVal) rpmVal.innerText = convRPM + ' RPM';
+
+        const rpmBar = document.getElementById('conv-rpm-bar');
+        if (rpmBar) rpmBar.style.width = Math.min(100, Math.round((convRPM / 350) * 100)) + '%';
+
+        const tempIn = document.getElementById('conv-temp-in');
+        if (tempIn) tempIn.innerText = Math.round(convCurrentTemp) + ' °C';
+
+        const stateBadge = document.getElementById('conv-state-badge');
+        if (stateBadge) {
+          if (convRPM > 60) {
+            stateBadge.innerText = 'វិលសកម្មខ្លាំង';
+            stateBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+          } else if (convRPM > 10) {
+            stateBadge.innerText = 'វិលយឺតៗ';
+            stateBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+          } else {
+            stateBadge.innerText = 'ឈប់វិល (គ្មានចរន្ត)';
+            stateBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40';
+          }
+        }
+
+        drawConvectionRealistic();
+        convAnimLoopId = requestAnimationFrame(loop);
+      }
+
+      convLastTime = performance.now();
+      convAnimLoopId = requestAnimationFrame(loop);
+    }
+
+    // ====================================================
+    // 4. EDDY CURRENT EXPERIMENT
+    // ====================================================
+    let eddyRunning = false;
+    let eddyTime = 0;
+    let eddyAnim = null;
+
+    const realisticTubes = [
+      { id: 'pvc', name: '១. បំពង់ជ័រ PVC', color: '#94a3b8', y: 55, v: 0, a: 420, termV: 420, finished: false, finishTime: null },
+      { id: 'cu', name: '២. បំពង់ទង់ដែង', color: '#d97706', y: 55, v: 0, a: 420, termV: 50, finished: false, finishTime: null },
+      { id: 'al', name: '៣. បំពង់អាលុយមីញ៉ូម', color: '#38bdf8', y: 55, v: 0, a: 420, termV: 95, finished: false, finishTime: null },
+      { id: 'slot', name: '៤. បំពង់ឆែកបណ្តោយ', color: '#c084fc', y: 55, v: 0, a: 420, termV: 360, finished: false, finishTime: null }
+    ];
+
+    function drawEddyRealistic() {
+      if (!eddyCtx) return;
+      eddyCtx.setTransform(UHD_SCALE, 0, 0, UHD_SCALE, 0, 0);
+      const w = LOGICAL_WIDTH;
+      const h = LOGICAL_HEIGHT_EDDY;
+      eddyCtx.clearRect(0, 0, w, h);
+
+      eddyCtx.fillStyle = '#090e1a';
+      eddyCtx.fillRect(0, 0, w, h);
+
+      const tableY = 430;
+      eddyCtx.fillStyle = '#1e293b';
+      eddyCtx.fillRect(0, tableY, w, h - tableY);
+      eddyCtx.strokeStyle = '#475569';
+      eddyCtx.strokeRect(0, tableY, w, 2);
+
+      eddyCtx.fillStyle = '#334155';
+      eddyCtx.fillRect(40, tableY - 12, 770, 12);
+
+      const tubeWidth = 64;
+      const tubeHeight = 350;
+      const tubeTopY = 55;
+      const tubeBottomY = tubeTopY + tubeHeight;
+      const colSpacing = 195;
+      const startX = 95;
+
+      realisticTubes.forEach((t, i) => {
+        const x = startX + i * colSpacing;
+
+        eddyCtx.fillStyle = '#f8fafc';
+        eddyCtx.font = 'bold 12px Kantumruy Pro, sans-serif';
+        eddyCtx.textAlign = 'center';
+        eddyCtx.fillText(t.name, x + tubeWidth / 2, tubeTopY - 14);
+
+        eddyCtx.fillStyle = '#475569';
+        eddyCtx.fillRect(x - 12, tubeTopY + 40, tubeWidth + 24, 10);
+        eddyCtx.fillRect(x - 12, tubeBottomY - 50, tubeWidth + 24, 10);
+
+        const tubeGrad = eddyCtx.createLinearGradient(x, 0, x + tubeWidth, 0);
+        if (t.id === 'cu' || t.id === 'slot') {
+          tubeGrad.addColorStop(0, '#9a3412');
+          tubeGrad.addColorStop(0.3, '#f97316');
+          tubeGrad.addColorStop(0.7, '#ea580c');
+          tubeGrad.addColorStop(1, '#7c2d12');
+        } else if (t.id === 'al') {
+          tubeGrad.addColorStop(0, '#64748b');
+          tubeGrad.addColorStop(0.3, '#f1f5f9');
+          tubeGrad.addColorStop(0.7, '#cbd5e1');
+          tubeGrad.addColorStop(1, '#475569');
+        } else {
+          tubeGrad.addColorStop(0, '#334155');
+          tubeGrad.addColorStop(0.3, '#94a3b8');
+          tubeGrad.addColorStop(1, '#1e293b');
+        }
+
+        eddyCtx.fillStyle = tubeGrad;
+        eddyCtx.fillRect(x, tubeTopY, tubeWidth, tubeHeight);
+
+        const cutW = 34;
+        const cutX = x + (tubeWidth - cutW) / 2;
+        eddyCtx.fillStyle = 'rgba(7, 11, 20, 0.75)';
+        eddyCtx.fillRect(cutX, tubeTopY, cutW, tubeHeight);
+        eddyCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        eddyCtx.lineWidth = 1;
+        eddyCtx.strokeRect(cutX, tubeTopY, cutW, tubeHeight);
+
+        if (t.id === 'slot') {
+          eddyCtx.strokeStyle = '#050810';
+          eddyCtx.lineWidth = 5;
+          eddyCtx.beginPath();
+          eddyCtx.moveTo(x + tubeWidth / 2, tubeTopY);
+          eddyCtx.lineTo(x + tubeWidth / 2, tubeBottomY);
+          eddyCtx.stroke();
+        }
+
+        eddyCtx.fillStyle = '#0284c7';
+        eddyCtx.fillRect(x + 4, tubeBottomY - 14, tubeWidth - 8, 14);
+
+        const magW = 30;
+        const magH = 26;
+        const magX = x + (tubeWidth - magW) / 2;
+        const magY = Math.min(t.y, tubeBottomY - magH - 14);
+
+        const nGrad = eddyCtx.createLinearGradient(magX, 0, magX + magW, 0);
+        nGrad.addColorStop(0, '#b91c1c');
+        nGrad.addColorStop(0.4, '#f87171');
+        nGrad.addColorStop(1, '#991b1b');
+        eddyCtx.fillStyle = nGrad;
+        eddyCtx.fillRect(magX, magY, magW, magH / 2);
+        eddyCtx.fillStyle = '#ffffff';
+        eddyCtx.font = 'bold 9px sans-serif';
+        eddyCtx.textAlign = 'center';
+        eddyCtx.fillText('N', magX + magW / 2, magY + 9);
+
+        const sGrad = eddyCtx.createLinearGradient(magX, 0, magX + magW, 0);
+        sGrad.addColorStop(0, '#1d4ed8');
+        sGrad.addColorStop(0.4, '#60a5fa');
+        sGrad.addColorStop(1, '#1e3a8a');
+        eddyCtx.fillStyle = sGrad;
+        eddyCtx.fillRect(magX, magY + magH / 2, magW, magH / 2);
+        eddyCtx.fillStyle = '#ffffff';
+        eddyCtx.fillText('S', magX + magW / 2, magY + 20);
+
+        if (eddyRunning && (t.id === 'cu' || t.id === 'al') && magY > tubeTopY && magY < tubeBottomY - 40) {
+          eddyCtx.save();
+          const pulse = Math.sin(eddyTime * 20) * 2;
+          eddyCtx.strokeStyle = '#fef08a';
+          eddyCtx.lineWidth = 2;
+          eddyCtx.setLineDash([5, 3]);
+
+          eddyCtx.beginPath();
+          eddyCtx.ellipse(x + tubeWidth / 2, magY - 10, 26 + pulse, 7, 0, 0, Math.PI * 2);
+          eddyCtx.stroke();
+
+          eddyCtx.beginPath();
+          eddyCtx.ellipse(x + tubeWidth / 2, magY + magH + 10, 26 + pulse, 7, 0, 0, Math.PI * 2);
+          eddyCtx.stroke();
+          eddyCtx.setLineDash([]);
+
+          eddyCtx.fillStyle = '#4ade80';
+          eddyCtx.font = 'bold 16px sans-serif';
+          eddyCtx.fillText('▲', x + tubeWidth / 2, magY - 18);
+          eddyCtx.font = 'bold 10px sans-serif';
+          eddyCtx.fillText('F_Lenz', x + tubeWidth / 2, magY - 26);
+          eddyCtx.restore();
+        }
+      });
+    }
+
+    function startEddySim() {
+      if (eddyRunning) return;
+      eddyRunning = true;
+      document.getElementById('eddy-drop-btn').classList.add('opacity-50', 'cursor-not-allowed');
+
+      let lastTime = performance.now();
+      const tubeBottomY = 55 + 350;
+
+      function loop(now) {
+        if (!eddyRunning) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.05);
+        lastTime = now;
+        eddyTime += dt;
+        document.getElementById('eddy-timer').innerText = '⏱️ រយៈពេលធ្លាក់៖ ' + eddyTime.toFixed(2) + 's';
+
+        let allFinished = true;
+
+        realisticTubes.forEach(t => {
+          if (!t.finished) {
+            allFinished = false;
+            if (t.v < t.termV) {
+              t.v += t.a * dt;
+            } else {
+              t.v = t.termV;
+            }
+
+            t.y += t.v * dt;
+
+            if (t.y >= tubeBottomY - 40) {
+              t.finished = true;
+              t.y = tubeBottomY - 40;
+              t.finishTime = eddyTime.toFixed(2);
+              document.getElementById('time-' + t.id).innerText = t.finishTime + ' វិនាទី';
+            }
+          }
+        });
+
+        drawEddyRealistic();
+
+        if (!allFinished) {
+          eddyAnim = requestAnimationFrame(loop);
+        } else {
+          eddyRunning = false;
+        }
+      }
+      eddyAnim = requestAnimationFrame(loop);
+    }
+
+    function resetEddySim() {
+      eddyRunning = false;
+      if (eddyAnim) cancelAnimationFrame(eddyAnim);
+      eddyTime = 0;
+      document.getElementById('eddy-timer').innerText = '⏱️ រយៈពេលធ្លាក់៖ 0.00s';
+      document.getElementById('eddy-drop-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+
+      realisticTubes.forEach(t => {
+        t.y = 55;
+        t.v = 0;
+        t.finished = false;
+        t.finishTime = null;
+        document.getElementById('time-' + t.id).innerText = '--';
+      });
+      drawEddyRealistic();
+    }
+
+    // Quiz Check
+    function checkQuizAnswers() {
+      let score = 0;
+
+      const q1 = document.querySelector('input[name="q1"]:checked');
+      const f1 = document.getElementById('q1-feedback');
+      f1.classList.remove('hidden', 'text-emerald-400', 'text-rose-400');
+      if (q1 && q1.value === 'grad') {
+        f1.innerText = '✓ ត្រឹមត្រូវ! នេះជាបាតុភូតក្រាដ្យង់សីតុណ្ហភាព (Temperature Gradient) កម្តៅបាត់បង់តាមចម្ងាយ។';
+        f1.classList.add('text-emerald-400');
+        score++;
+      } else {
+        f1.innerText = '✗ មិនត្រឹមត្រូវទេ! មូលហេតុគឺដោយសារក្រាដ្យង់សីតុណ្ហភាពតាមបណ្តោយរបារ។';
+        f1.classList.add('text-rose-400');
+      }
+
+      const q2 = document.querySelector('input[name="q2"]:checked');
+      const f2 = document.getElementById('q2-feedback');
+      f2.classList.remove('hidden', 'text-emerald-400', 'text-rose-400');
+      if (q2 && q2.value === 'cu') {
+        f2.innerText = '✓ ត្រឹមត្រូវ! ទង់ដែងមានមេគុណកម្តៅ k = 385 W/m·K ចម្លងលឿនជាងមាស (k = 314 W/m·K)។';
+        f2.classList.add('text-emerald-400');
+        score++;
+      } else {
+        f2.innerText = '✗ មិនត្រឹមត្រូវទេ! ទង់ដែងចម្លងកម្តៅបានល្អជាងមាស ($385 > 314$)។';
+        f2.classList.add('text-rose-400');
+      }
+
+      const q3 = document.querySelector('input[name="q3"]:checked');
+      const f3 = document.getElementById('q3-feedback');
+      f3.classList.remove('hidden', 'text-emerald-400', 'text-rose-400');
+      if (q3 && q3.value === 'eddy') {
+        f3.innerText = '✓ ត្រឹមត្រូវ! ចរន្តវិលវល់បង្កើតដែនម៉ាញេទិចប្រឆាំងនឹងចលនាមេដែក (ច្បាប់លេន)។';
+        f3.classList.add('text-emerald-400');
+        score++;
+      } else {
+        f3.innerText = '✗ មិនត្រឹមត្រូវទេ! មូលហេតុគឺដោយសារចរន្តវិលវល់ និងច្បាប់លេន។';
+        f3.classList.add('text-rose-400');
+      }
+
+      const q4 = document.querySelector('input[name="q4"]:checked');
+      const f4 = document.getElementById('q4-feedback');
+      f4.classList.remove('hidden', 'text-emerald-400', 'text-rose-400');
+      if (q4 && q4.value === 'conv') {
+        f4.innerText = '✓ ត្រឹមត្រូវ! ខ្យល់ក្តៅរីកមាឌ ស្រាលជាងខ្យល់ត្រជាក់ បក់ឡើងលើបង្កើតជាចរន្តវិលវល់ (Convection Draft) រុញស្លាបកង្ហារ។';
+        f4.classList.add('text-emerald-400');
+        score++;
+      } else {
+        f4.innerText = '✗ មិនត្រឹមត្រូវទេ! មូលហេតុគឺដោយសារចរន្តវិលវល់កម្តៅនៃខ្យល់ (Thermal Convection Draft)។';
+        f4.classList.add('text-rose-400');
+      }
+
+      const scoreEl = document.getElementById('quiz-score');
+      scoreEl.innerText = 'ពិន្ទុរបស់អ្នក៖ ' + score + ' / ៤ (' + Math.round((score/4)*100) + '%)';
+      scoreEl.className = score === 4 ? 'text-sm font-bold text-emerald-400' : 'text-sm font-bold text-blue-400';
+    }
+
+    function setupConvectionInteractions() {
+      if (!convCanvas) return;
+
+      function getCanvasCoords(e) {
+        const rect = convCanvas.getBoundingClientRect();
+        const scaleX = LOGICAL_WIDTH / rect.width;
+        const scaleY = LOGICAL_HEIGHT_CONV / rect.height;
+        return {
+          x: (e.clientX - rect.left) * scaleX,
+          y: (e.clientY - rect.top) * scaleY
+        };
+      }
+
+      convCanvas.addEventListener('click', function(e) {
+        const pt = getCanvasCoords(e);
+        const canCenterX = 425;
+        const tableY = 420;
+        const matY = tableY - 6;
+        const canBottomY = convAirIntakeOpen ? (tableY - 26) : (tableY - 5);
+
+        // Candle and doorway hit area:
+        const candleHit = (pt.x >= canCenterX - 45 && pt.x <= canCenterX + 45 && pt.y >= canBottomY - 85 && pt.y <= tableY + 25);
+        // Red Lighter hit area:
+        const lighterHit = (pt.x >= 595 && pt.x <= 685 && pt.y >= matY - 10 && pt.y <= matY + 50);
+
+        if (candleHit || lighterHit) {
+          toggleConvFlame();
+        }
+      });
+
+      convCanvas.addEventListener('mousemove', function(e) {
+        const pt = getCanvasCoords(e);
+        const canCenterX = 425;
+        const tableY = 420;
+        const matY = tableY - 6;
+        const canBottomY = convAirIntakeOpen ? (tableY - 26) : (tableY - 5);
+
+        const candleHit = (pt.x >= canCenterX - 45 && pt.x <= canCenterX + 45 && pt.y >= canBottomY - 85 && pt.y <= tableY + 25);
+        const lighterHit = (pt.x >= 595 && pt.x <= 685 && pt.y >= matY - 10 && pt.y <= matY + 50);
+
+        convHoverCandle = candleHit;
+        convHoverLighter = lighterHit;
+        convCanvas.style.cursor = (candleHit || lighterHit) ? 'pointer' : 'default';
+      });
+
+      convCanvas.addEventListener('mouseleave', function() {
+        convHoverCandle = false;
+        convHoverLighter = false;
+        convCanvas.style.cursor = 'default';
+      });
+    }
+
+    window.onload = function() {
+      initUltraHdAll();
+      setupThermoInteractions();
+      setupCondInteractions();
+      setupConvectionInteractions();
+      updateIgniteButtonUI();
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+          drawThermoSimulation();
+          drawConductionRealistic();
+          drawConvectionRealistic();
+          drawEddyRealistic();
+        });
+      } else {
+        drawThermoSimulation();
+        drawConductionRealistic();
+        drawConvectionRealistic();
+        drawEddyRealistic();
+      }
+      // Start the realistic convection turbine loop
+      startConvLoop();
+    };
+  </script>
+</body>
+</html>
